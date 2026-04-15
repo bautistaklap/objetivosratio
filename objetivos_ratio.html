@@ -1,0 +1,465 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Objetivos · Ratio</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#111a26;min-height:100vh;padding:1.5rem}
+.app{background:#1a2535;border-radius:16px;padding:1.75rem;max-width:720px;margin:0 auto;min-height:500px}
+.topbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:1.75rem;flex-wrap:wrap;gap:10px}
+.app-title{font-size:20px;font-weight:500;color:#fff}
+.user-chip{display:flex;align-items:center;gap:10px}
+.avatar{width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:500;color:#fff;flex-shrink:0}
+.u-name{font-size:13px;font-weight:500;color:#fff}
+.u-week{font-size:11px;color:#7a8fa6;margin-top:1px}
+.btn-ghost{font-size:12px;color:#7a8fa6;background:transparent;border:0.5px solid #2e3f54;border-radius:8px;padding:5px 12px;cursor:pointer;font-family:inherit}
+.btn-ghost:hover{color:#fff;border-color:#4a5f74}
+.card{border-radius:12px;margin-bottom:1.25rem;overflow:hidden}
+.card-plain{background:#212f42;border:0.5px solid #2e3f54}
+.card-red{background:#212f42;border:1.5px solid #e8401c}
+.card-blue{background:#212f42;border:1.5px solid #378ADD}
+.ch{padding:14px 18px;display:flex;justify-content:space-between;align-items:center;border-bottom:0.5px solid #2e3f54;flex-wrap:wrap;gap:8px}
+.ch-red{background:#2a1e1e}
+.ch-blue{background:#1e2a3a}
+.ch-plain{background:#263347}
+.ch-title{font-size:15px;font-weight:500;color:#fff}
+.ch-date{font-size:11px;color:#7a8fa6;background:#1a2535;padding:3px 10px;border-radius:20px}
+.cb{padding:1.25rem 1.5rem}
+.sec-label{display:flex;align-items:center;gap:8px;margin-bottom:10px}
+.sec-num{width:22px;height:22px;border-radius:50%;font-size:11px;font-weight:500;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.sec-red{background:#e8401c;color:#fff}
+.sec-blue{background:#378ADD;color:#fff}
+.sec-txt{font-size:11px;font-weight:500;color:#7a8fa6;letter-spacing:0.06em;text-transform:uppercase}
+.inp-dark{width:100%;font-size:14px;padding:9px 12px;border:0.5px solid #2e3f54;border-radius:8px;background:#1a2535;color:#fff;font-family:inherit;outline:none}
+.inp-dark::placeholder{color:#4a5f74}
+.inp-dark:focus{border-color:#4a5f74}
+.obj-row{display:flex;align-items:center;gap:8px;background:#1a2535;border:0.5px solid #2e3f54;border-radius:8px;padding:4px 4px 4px 12px;margin-bottom:8px}
+.obj-row-num{font-size:11px;color:#4a5f74;font-weight:500;min-width:18px}
+.obj-row input{flex:1;background:transparent;border:none;outline:none;font-size:13px;font-weight:500;color:#fff;padding:6px 0;font-family:inherit}
+.obj-row input::placeholder{color:#4a5f74}
+.del-btn{width:26px;height:26px;border-radius:6px;background:#2e3f54;border:none;color:#7a8fa6;font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.add-obj-btn{display:flex;align-items:center;justify-content:center;gap:6px;width:100%;padding:10px;font-size:13px;font-weight:500;color:#7a8fa6;background:#1a2535;border:0.5px dashed #2e3f54;border-radius:8px;cursor:pointer;font-family:inherit;margin-top:4px;margin-bottom:16px}
+.add-obj-btn:hover{color:#fff;border-color:#4a5f74}
+.save-zone{border-top:0.5px solid #2e3f54;padding-top:16px}
+.save-warning{font-size:12px;color:#7a8fa6;margin-bottom:10px;padding:9px 12px;background:#1a2535;border-left:3px solid #e8401c;border-radius:0 8px 8px 0;line-height:1.5}
+.save-btn{width:100%;padding:11px;font-size:14px;font-weight:500;border:none;border-radius:8px;cursor:pointer;font-family:inherit}
+.save-red{background:#e8401c;color:#fff}.save-red:hover{opacity:0.88}
+.save-blue{background:#378ADD;color:#fff}.save-blue:hover{opacity:0.88}
+.obj-conf{background:#1a2535;border:0.5px solid #2e3f54;border-radius:10px;margin-bottom:10px;overflow:hidden}
+.obj-conf-top{padding:12px 14px}
+.obj-conf-name{font-size:13px;font-weight:500;color:#fff;margin-bottom:10px;line-height:1.45}
+.rpill{display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:500;padding:5px 14px;border-radius:20px;border:0.5px solid #2e3f54;cursor:pointer;color:#7a8fa6;background:#212f42;font-family:inherit}
+.rpill.ok{background:#1a3a28;border-color:#3B6D11;color:#9FE1CB}
+.rpill.no{background:#3a1a1a;border-color:#A32D2D;color:#F09595}
+.rpill.idle{opacity:0.35}
+.obj-conf-links{padding:10px 14px;background:#151e2b;border-top:0.5px solid #2e3f54}
+.link-lbl{font-size:10px;color:#4a5f74;margin-bottom:8px;letter-spacing:0.06em;text-transform:uppercase}
+.link-row-inp{display:flex;gap:6px;align-items:center;margin-bottom:6px}
+.link-row-inp input{flex:1;font-size:12px;padding:6px 10px;background:#1a2535;border:0.5px solid #2e3f54;border-radius:7px;color:#7ab8f5;font-family:inherit;outline:none}
+.link-row-inp input::placeholder{color:#4a5f74}
+.del-link{width:24px;height:24px;border-radius:6px;background:#212f42;border:none;color:#7a8fa6;font-size:13px;cursor:pointer;font-family:inherit;flex-shrink:0}
+.add-link-btn{font-size:11px;color:#7a8fa6;background:transparent;border:0.5px dashed #2e3f54;border-radius:7px;padding:4px 10px;cursor:pointer;font-family:inherit}
+.add-link-btn:hover{color:#fff}
+.alert-ok{font-size:13px;color:#9FE1CB;padding:9px 14px;background:#1a3a28;border-radius:8px;margin-bottom:10px;border:0.5px solid #3B6D11}
+.err-msg{font-size:12px;color:#F09595;margin-top:6px}
+.hist-week{margin-bottom:1.25rem}
+.hist-week-lbl{font-size:11px;font-weight:500;color:#4a5f74;letter-spacing:0.06em;text-transform:uppercase;margin-bottom:8px;padding-bottom:6px;border-top:0.5px solid #2e3f54;padding-top:10px}
+.hist-obj{padding:10px 14px;background:#1a2535;border:0.5px solid #2e3f54;border-radius:8px;margin-bottom:6px}
+.hist-obj-name{font-size:13px;font-weight:500;color:#fff;margin-bottom:4px}
+.hist-link{font-size:11px;margin-top:3px;word-break:break-all}
+.badge{font-size:11px;padding:3px 9px;border-radius:20px;font-weight:500;white-space:nowrap}
+.b-ok{background:#1a3a28;color:#9FE1CB;border:0.5px solid #3B6D11}
+.b-no{background:#3a1a1a;color:#F09595;border:0.5px solid #A32D2D}
+.b-pend{background:#212f42;color:#7a8fa6;border:0.5px solid #2e3f54}
+.b-warn{background:#2a1e0e;color:#FAC775;border:0.5px solid #633806}
+.empty{font-size:13px;color:#4a5f74;text-align:center;padding:1.5rem 0}
+.metric-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-bottom:1.25rem}
+.metric{background:#212f42;border:0.5px solid #2e3f54;border-radius:10px;padding:14px 16px}
+.metric-lbl{font-size:11px;color:#7a8fa6;margin-bottom:4px}
+.metric-val{font-size:22px;font-weight:500}
+.obj-saved-row{padding:9px 12px;background:#1a2535;border:0.5px solid #2e3f54;border-radius:8px;margin-bottom:7px;font-size:13px;font-weight:500;color:#fff}
+.av-team{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:500;flex-shrink:0}
+.modal-overlay{position:fixed;inset:0;background:rgba(10,16,26,0.88);display:flex;align-items:center;justify-content:center;z-index:100;padding:1rem}
+.modal-box{background:#212f42;border:1px solid #e8401c;border-radius:14px;padding:1.75rem;max-width:340px;width:100%;text-align:center}
+.modal-icon{width:44px;height:44px;border-radius:50%;background:#2a1e1e;border:1px solid #e8401c;display:flex;align-items:center;justify-content:center;margin:0 auto 14px;font-size:20px}
+.modal-title{font-size:16px;font-weight:500;color:#fff;margin-bottom:8px}
+.modal-body{font-size:13px;color:#7a8fa6;line-height:1.6;margin-bottom:20px}
+.modal-btns{display:flex;gap:10px}
+.modal-cancel{flex:1;padding:10px;font-size:13px;font-weight:500;background:transparent;border:0.5px solid #2e3f54;border-radius:8px;color:#7a8fa6;cursor:pointer;font-family:inherit}
+.modal-cancel:hover{color:#fff}
+.modal-confirm{flex:1;padding:10px;font-size:13px;font-weight:500;background:#e8401c;border:none;border-radius:8px;color:#fff;cursor:pointer;font-family:inherit}
+.loading{font-size:13px;color:#7a8fa6;text-align:center;padding:2rem 0}
+.spinner{display:inline-block;width:18px;height:18px;border:2px solid #2e3f54;border-top-color:#e8401c;border-radius:50%;animation:spin 0.7s linear infinite;margin-right:8px;vertical-align:middle}
+@keyframes spin{to{transform:rotate(360deg)}}
+.member-card{background:#1a2535;border:0.5px solid #2e3f54;border-radius:10px;padding:12px 14px;margin-bottom:10px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;transition:border-color 0.15s}
+.member-card:hover{border-color:#4a5f74}
+.member-left{display:flex;align-items:center;gap:10px}
+.member-name{font-size:13px;font-weight:500;color:#fff}
+.member-stats{font-size:11px;color:#7a8fa6;margin-top:2px}
+.back-btn{display:flex;align-items:center;gap:6px;font-size:12px;color:#7a8fa6;background:transparent;border:none;cursor:pointer;padding:0;margin-bottom:1.25rem;font-family:inherit}
+.back-btn:hover{color:#fff}
+.profile-header{display:flex;align-items:center;gap:12px;margin-bottom:1rem}
+.profile-avatar{width:48px;height:48px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:500;color:#fff;flex-shrink:0}
+.profile-name{font-size:17px;font-weight:500;color:#fff}
+.profile-meta{font-size:12px;color:#7a8fa6;margin-top:2px}
+.stat-row{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin-bottom:1.25rem}
+.stat-pill{background:#212f42;border:0.5px solid #2e3f54;border-radius:8px;padding:10px 12px}
+.stat-pill-val{font-size:18px;font-weight:500;margin-bottom:2px}
+.stat-pill-lbl{font-size:11px;color:#7a8fa6}
+.admin-zone{border-top:0.5px solid #2e3f54;padding-top:14px;margin-top:4px;display:flex;gap:8px;flex-wrap:wrap}
+.btn-deactivate{font-size:12px;font-weight:500;padding:7px 14px;border:0.5px solid #633806;border-radius:8px;background:transparent;color:#FAC775;cursor:pointer;font-family:inherit}
+.btn-deactivate:hover{background:#2a1e0e}
+.btn-delete{font-size:12px;font-weight:500;padding:7px 14px;border:0.5px solid #A32D2D;border-radius:8px;background:transparent;color:#F09595;cursor:pointer;font-family:inherit}
+.btn-delete:hover{background:#3a1a1a}
+.badge-inactive{font-size:11px;padding:3px 9px;border-radius:20px;font-weight:500;background:#2a1e0e;color:#FAC775;border:0.5px solid #633806;margin-left:8px}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="topbar">
+    <p class="app-title" ondblclick="activarJefe()" style="user-select:none">Objetivos <span style="color:#e8401c">&#183;</span> equipo</p>
+    <div id="topbar-right"></div>
+  </div>
+  <div id="modal-container"></div>
+  <div id="view"><div class="loading"><span class="spinner"></span>Cargando...</div></div>
+</div>
+<script>
+const BOSS_NAME='Bautista Klappenbach';
+const BOSS_PASS='181222Arg';
+const TEAM=['Alfredo','Agustín','Candela','Clara','Juan','Luciana','Malena','Manuel','Sofía','Victoria'];
+const BIN_ID='69dfa22a856a68218938e40e';
+const API_KEY='$2a$10$uej8hfPUqpXaircuYHffuOPDP1ekVl9rfu/D1xwhCxxGS2GLQA0EO';
+const BIN_URL='https://api.jsonbin.io/v3/b/'+BIN_ID;
+const CACHE_KEY='ratio_cache_v1';
+const SEM_MS=7*24*60*60*1000;
+
+function getWeekKey(date){
+  const d=new Date(date);d.setHours(0,0,0,0);
+  const day=d.getDay();
+  const fri=new Date(d);
+  fri.setDate(d.getDate()-((day>=5)?(day-5):(day+2)));
+  return fri.toISOString().slice(0,10);
+}
+function weekLabel(key){
+  const d=new Date(key+'T12:00:00');
+  const end=new Date(d);end.setDate(d.getDate()+6);
+  const fmt=dt=>dt.toLocaleDateString('es-AR',{day:'2-digit',month:'2-digit'});
+  return fmt(d)+'\u2013'+fmt(end);
+}
+const currentWeek=getWeekKey(new Date());
+const prevWeek=getWeekKey(new Date(Date.now()-SEM_MS));
+let userName='';
+let allData={};
+
+function loadCache(){
+  try{const c=localStorage.getItem(CACHE_KEY);if(c){allData=JSON.parse(c);return true;}}catch(e){}
+  allData={};return false;
+}
+function saveCache(){try{localStorage.setItem(CACHE_KEY,JSON.stringify(allData));}catch(e){}}
+async function syncFromRemote(){
+  try{
+    const r=await fetch(BIN_URL+'/latest',{headers:{'X-Master-Key':API_KEY}});
+    const json=await r.json();
+    allData=json.record?.datos||{};
+    saveCache();
+    return true;
+  }catch(e){return false;}
+}
+async function pushToRemote(){
+  try{
+    await fetch(BIN_URL,{method:'PUT',headers:{'Content-Type':'application/json','X-Master-Key':API_KEY},body:JSON.stringify({datos:allData})});
+    saveCache();
+  }catch(e){console.error(e);}
+}
+
+async function enviarNotificacion(tipo, usuario, detalle){
+  try{
+    await fetch('https://api.web3forms.com/submit',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({
+        access_key:'ed57b5f8-fc8b-434b-b744-3eda6cb4c6d7',
+        subject: tipo==='objetivos'
+          ? `\ud83c\udfaf ${usuario} carg\u00f3 sus objetivos de la semana`
+          : `\u2705 ${usuario} confirm\u00f3 sus objetivos de la semana pasada`,
+        from_name:'Objetivos \u00b7 Ratio',
+        message: detalle
+      })
+    });
+  }catch(e){console.error('notif error',e);}
+}
+
+function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+function initials(n){return n.split(' ').map(p=>p[0]||'').join('').slice(0,2).toUpperCase();}
+const AVC=['#e8401c','#378ADD','#1D9E75','#7F77DD','#D85A30','#534AB7'];
+function avColor(i){return AVC[i%AVC.length];}
+function setTopbar(html){document.getElementById('topbar-right').innerHTML=html;}
+function render(html){document.getElementById('view').innerHTML=html;}
+
+function showModal(opts){
+  document.getElementById('modal-container').innerHTML=`<div class="modal-overlay"><div class="modal-box"><div class="modal-icon">&#9888;</div><p class="modal-title">${opts.title}</p><div class="modal-body">${opts.body}</div><div class="modal-btns"><button class="modal-cancel" onclick="closeModal()">Cancelar</button><button class="modal-confirm" onclick="closeModal();(${opts.onConfirm})()">Confirmar</button></div></div></div>`;
+}
+function closeModal(){document.getElementById('modal-container').innerHTML='';}
+
+function activarJefe(){
+  userName=BOSS_NAME;
+  showBossPass();
+}
+function showLogin(){
+  setTopbar('');
+  const inactive=allData.__inactive||[];
+  const opts=TEAM.filter(n=>!inactive.includes(n)).map(n=>`<option value="${n}">${n}</option>`).join('');
+  render(`<div class="card card-plain" style="max-width:380px;margin:0 auto"><div class="ch ch-plain"><span class="ch-title">&#191;Qui&#233;n sos?</span></div><div class="cb"><p style="font-size:13px;color:#7a8fa6;margin-bottom:14px">Seleccion&#225; tu nombre para acceder.</p><select class="inp-dark" id="inp-nombre" style="cursor:pointer"><option value="">&#8212; Seleccion&#225; tu nombre &#8212;</option>${opts}</select><div style="margin-top:12px"><button class="save-btn save-red" onclick="doLogin()">Entrar</button></div><p class="err-msg" id="err-login" style="display:none"></p></div></div>`);
+}
+function showBossPass(){
+  setTopbar('');
+  render(`<div class="card card-red" style="max-width:380px;margin:0 auto"><div class="ch ch-red"><span class="ch-title">Verificaci&#243;n</span></div><div class="cb"><p style="font-size:13px;color:#7a8fa6;margin-bottom:14px">Ingres&#225; la contrase&#241;a de acceso.</p><input class="inp-dark" type="password" id="inp-pass" placeholder="&#8226;&#8226;&#8226;&#8226;&#8226;&#8226;&#8226;&#8226;" onkeydown="if(event.key==='Enter')doBossPass()"><div style="margin-top:12px"><button class="save-btn save-blue" onclick="doBossPass()">Entrar</button></div><p class="err-msg" id="err-pass" style="display:none"></p><button class="btn-ghost" onclick="showLogin()" style="margin-top:10px;width:100%;text-align:center">&#8592; Volver</button></div></div>`);
+}
+function doLogin(){
+  const n=document.getElementById('inp-nombre').value.trim();
+  const err=document.getElementById('err-login');
+  if(!n){err.textContent='Ingres\u00e1 tu nombre.';err.style.display='block';return;}
+  if(n===BOSS_NAME){showBossPass();return;}
+  userName=n;localStorage.setItem('ratio_user',n);showUserPanel();
+}
+function doBossPass(){
+  const p=document.getElementById('inp-pass').value;
+  const err=document.getElementById('err-pass');
+  if(p===BOSS_PASS){userName=BOSS_NAME;localStorage.setItem('ratio_user',BOSS_NAME);showBossPanel();}
+  else{err.textContent='Contrase\u00f1a incorrecta.';err.style.display='block';document.getElementById('inp-pass').value='';}
+}
+function logout(){userName='';localStorage.removeItem('ratio_user');showLogin();}
+
+function showUserPanel(){
+  setTopbar(`<div class="user-chip"><div class="avatar" style="background:#e8401c">${initials(userName)}</div><div><div class="u-name">${esc(userName)}</div><div class="u-week">${weekLabel(currentWeek)}</div></div><button class="btn-ghost" onclick="logout()">Salir</button></div>`);
+  const userData=allData[userName]||{};
+  const curData=userData[currentWeek];
+  const prevData=userData[prevWeek];
+  const hasPrevPending=prevData&&prevData.objetivos&&prevData.objetivos.length&&!prevData.confirmaciones;
+  let html='';
+  if(curData&&curData.objetivos&&curData.objetivos.length){
+    html+=`<div class="card card-plain"><div class="ch ch-plain"><span class="ch-title">Semana actual</span><span class="ch-date">${weekLabel(currentWeek)}</span></div><div class="cb"><div class="alert-ok">&#10003; Objetivos guardados para esta semana</div><div style="margin-top:12px">${curData.objetivos.map((o,i)=>`<div class="obj-saved-row">${i+1}. ${esc(o)}</div>`).join('')}</div></div></div>`;
+  } else {
+    html+=`<div class="sec-label"><div class="sec-num sec-red">1</div><span class="sec-txt">Objetivos de esta semana</span></div><div class="card card-red"><div class="ch ch-red"><span class="ch-title">Semana nueva</span><span class="ch-date">${weekLabel(currentWeek)}</span></div><div class="cb"><div id="objs-inputs"></div><button class="add-obj-btn" onclick="addObj()"><svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M7 1v12M1 7h12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>Agregar objetivo</button><div class="save-zone"><p class="save-warning">&#9888;&nbsp;<strong style="color:#FAC775">Atenci&#243;n:</strong> una vez guardados, los objetivos no se pueden editar ni eliminar.</p><button class="save-btn save-red" onclick="confirmarGuardarObjetivos()">Guardar objetivos</button></div><p class="err-msg" id="err-obj" style="display:none"></p></div></div>`;
+  }
+  if(hasPrevPending){
+    html+=`<div class="sec-label" style="margin-top:0.25rem"><div class="sec-num sec-blue">2</div><span class="sec-txt">Confirmar semana anterior</span></div><div class="card card-blue"><div class="ch ch-blue"><span class="ch-title">Semana pasada</span><span class="ch-date">${weekLabel(prevWeek)}</span></div><div class="cb">${prevData.objetivos.map((o,i)=>`<div class="obj-conf"><div class="obj-conf-top"><p class="obj-conf-name">${i+1}. ${esc(o)}</p><div style="display:flex;gap:8px;flex-wrap:wrap"><span class="rpill idle" id="rpill-ok-${i}" onclick="selectConf(${i},'si')">&#10003; Cumplido</span><span class="rpill idle" id="rpill-no-${i}" onclick="selectConf(${i},'no')">&#10007; No cumplido</span></div></div><div class="obj-conf-links"><p class="link-lbl">Links de evidencia</p><div id="links-${i}"><div class="link-row-inp"><input placeholder="https://..."><button class="del-link" onclick="this.parentElement.remove()">&#215;</button></div></div><button class="add-link-btn" onclick="addLink(${i})">+ Otro link</button></div></div>`).join('')}<div class="save-zone"><p class="save-warning" style="border-left-color:#378ADD">&#9888;&nbsp;<strong style="color:#FAC775">Atenci&#243;n:</strong> una vez confirmado, no podr&#225;s modificar esta semana.</p><button class="save-btn save-blue" onclick="confirmarGuardarConf()">Guardar confirmaciones</button></div><p class="err-msg" id="err-conf" style="display:none"></p></div></div>`;
+  }
+  const histWeeks=Object.keys(userData).filter(w=>w!==currentWeek&&(w!==prevWeek||!hasPrevPending)).sort().reverse();
+  if(histWeeks.length){html+=`<div class="card card-plain"><div class="ch ch-plain"><span class="ch-title">Mi historial</span></div><div class="cb">${renderHistorial(userData,histWeeks)}</div></div>`;}
+  render(html);
+  if(!curData||!curData.objetivos||!curData.objetivos.length){objCount=0;document.getElementById('objs-inputs').innerHTML='';addObj();}
+}
+
+let objCount=0;
+function addObj(val=''){
+  const c=document.getElementById('objs-inputs');if(!c)return;
+  const id='o'+objCount++;
+  const d=document.createElement('div');d.id=id;d.className='obj-row';
+  d.innerHTML=`<span class="obj-row-num">${String(objCount).padStart(2,'0')}</span><input placeholder="Describ\u00ed tu objetivo" value="${val.replace(/"/g,'&quot;')}"><button class="del-btn" onclick="document.getElementById('${id}').remove()">&#215;</button>`;
+  c.appendChild(d);
+}
+function addLink(i){
+  const c=document.getElementById('links-'+i);if(!c)return;
+  const d=document.createElement('div');d.className='link-row-inp';
+  d.innerHTML=`<input placeholder="https://..."><button class="del-link" onclick="this.parentElement.remove()">&#215;</button>`;
+  c.appendChild(d);
+}
+const confSelections={};
+function selectConf(i,val){
+  confSelections[i]=val;
+  const ok=document.getElementById('rpill-ok-'+i);const no=document.getElementById('rpill-no-'+i);
+  if(ok&&no){ok.className='rpill'+(val==='si'?' ok':' idle');no.className='rpill'+(val==='no'?' no':' idle');}
+}
+function confirmarGuardarObjetivos(){
+  const objs=Array.from(document.querySelectorAll('#objs-inputs input')).map(i=>i.value.trim()).filter(Boolean);
+  const err=document.getElementById('err-obj');
+  if(!objs.length){err.textContent='Agreg\u00e1 al menos un objetivo.';err.style.display='block';return;}
+  err.style.display='none';
+  const lista=objs.map((o,i)=>`<div style="background:#1a2535;border-radius:6px;padding:6px 10px;margin-bottom:5px;font-size:12px;color:#fff;text-align:left">${i+1}. ${esc(o)}</div>`).join('');
+  showModal({title:'&#191;Confirm&#225;s estos objetivos?',body:`${lista}<br><strong style="color:#FAC775">&#9888; No podr&#225;s editarlos despu&#233;s de guardar.</strong>`,onConfirm:'guardarObjetivos'});
+}
+function confirmarGuardarConf(){
+  const err=document.getElementById('err-conf');
+  const prevData=allData[userName]&&allData[userName][prevWeek];
+  if(!prevData){err.textContent='Error inesperado.';err.style.display='block';return;}
+  let allFilled=true;
+  prevData.objetivos.forEach((_,i)=>{if(!confSelections[i])allFilled=false;});
+  if(!allFilled){err.textContent='Marc\u00e1 el estado de todos los objetivos.';err.style.display='block';return;}
+  err.style.display='none';
+  showModal({title:'&#191;Confirm&#225;s las verificaciones?',body:'Una vez guardado, <strong style="color:#FAC775">no podr&#225;s modificar el estado de esta semana.</strong>',onConfirm:'guardarConfirmaciones'});
+}
+async function guardarObjetivos(){
+  const objs=Array.from(document.querySelectorAll('#objs-inputs input')).map(i=>i.value.trim()).filter(Boolean);
+  if(!allData[userName])allData[userName]={};
+  allData[userName][currentWeek]={objetivos:objs,timestamp:new Date().toISOString()};
+  render('<div class="loading"><span class="spinner"></span>Guardando...</div>');
+  if(syncPromise)await syncPromise;
+  const detalle=`Semana: ${weekLabel(currentWeek)}\n\nObjetivos:\n${objs.map((o,i)=>`${i+1}. ${o}`).join('\n')}`;
+  await Promise.all([pushToRemote(), enviarNotificacion('objetivos', userName, detalle)]);
+  showUserPanel();
+}
+async function guardarConfirmaciones(){
+  const prevData=allData[userName]&&allData[userName][prevWeek];if(!prevData)return;
+  const confs=prevData.objetivos.map((_,i)=>{
+    const links=Array.from(document.querySelectorAll(`#links-${i} input`)).map(l=>l.value.trim()).filter(Boolean);
+    return{cumplido:confSelections[i]==='si',links};
+  });
+  allData[userName][prevWeek].confirmaciones=confs;
+  allData[userName][prevWeek].confirmadoEn=new Date().toISOString();
+  render('<div class="loading"><span class="spinner"></span>Guardando...</div>');
+  if(syncPromise)await syncPromise;
+  const resumen=prevData.objetivos.map((o,i)=>{
+    const c=confs[i];
+    const estado=c.cumplido?'\u2705 Cumplido':'\u274c No cumplido';
+    const links=c.links&&c.links.length?'\n   Links: '+c.links.join(', '):'';
+    return `${i+1}. ${o}\n   ${estado}${links}`;
+  }).join('\n\n');
+  const detalle=`Semana: ${weekLabel(prevWeek)}\n\n${resumen}`;
+  await Promise.all([pushToRemote(), enviarNotificacion('confirmaciones', userName, detalle)]);
+  showUserPanel();
+}
+
+function renderHistorial(userData,weeks){
+  return weeks.map(w=>{
+    const d=userData[w];const objs=d.objetivos||[];const confs=d.confirmaciones||[];
+    return `<div class="hist-week"><p class="hist-week-lbl">${weekLabel(w)}</p>${objs.map((o,i)=>{
+      const conf=confs[i];
+      const badge=conf===undefined?'<span class="badge b-pend">Sin confirmar</span>':conf.cumplido?'<span class="badge b-ok">&#10003; Cumplido</span>':'<span class="badge b-no">&#10007; No cumplido</span>';
+      const links=conf&&conf.links&&conf.links.length?conf.links.map(l=>`<div class="hist-link">&#8599; <a href="${esc(l)}" target="_blank" style="color:#7ab8f5">${esc(l)}</a></div>`).join(''):'';
+      return `<div class="hist-obj"><div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px"><span class="hist-obj-name">${esc(o)}</span>${badge}</div>${links}</div>`;
+    }).join('')}</div>`;
+  }).join('');
+}
+
+function showBossPanel(){
+  setTopbar(`<div class="user-chip"><div class="avatar" style="background:#e8401c">BK</div><div><div class="u-name">Bautista</div><div class="u-week">Vista de jefe</div></div><button class="btn-ghost" onclick="logout()">Salir</button></div>`);
+  const users=Object.keys(allData).filter(u=>u!==BOSS_NAME);
+  const allWeeks=[...new Set(users.flatMap(u=>Object.keys(allData[u]||{})))].sort().reverse();
+  let totalO=0,cumpl=0,sinConf=0;
+  users.forEach(u=>{
+    if(allData[u]&&allData[u][prevWeek]){
+      const d=allData[u][prevWeek];const n=(d.objetivos||[]).length;totalO+=n;
+      if(d.confirmaciones)d.confirmaciones.forEach(c=>{if(c.cumplido)cumpl++;});
+      else if(n>0)sinConf++;
+    }
+  });
+  const pct=totalO>0?Math.round(cumpl/totalO*100)+'%':'&#8212;';
+  let html=`<div class="metric-grid"><div class="metric"><p class="metric-lbl">Miembros activos</p><p class="metric-val" style="color:#fff">${users.length}</p></div><div class="metric"><p class="metric-lbl">Cumplimiento semana pasada</p><p class="metric-val" style="color:#9FE1CB">${pct}</p></div><div class="metric"><p class="metric-lbl">Sin confirmar a&#250;n</p><p class="metric-val" style="color:#FAC775">${sinConf}</p></div></div>`;
+  if(!users.length){
+    html+=`<div class="card card-plain"><div class="cb"><p class="empty">Nadie carg&#243; objetivos todav&#237;a.</p></div></div>`;
+  } else {
+    html+=`<div class="card card-plain"><div class="ch ch-plain"><span class="ch-title">Equipo</span></div><div class="cb">`;
+    html+=users.map((u,ui)=>{
+      const ud=allData[u]||{};const ws=Object.keys(ud);
+      const pendConf=ud[prevWeek]&&ud[prevWeek].objetivos&&!ud[prevWeek].confirmaciones;
+      let tc=0,tot=0;ws.forEach(w=>{(ud[w].objetivos||[]).forEach((_,i)=>{tot++;if(ud[w].confirmaciones&&ud[w].confirmaciones[i]&&ud[w].confirmaciones[i].cumplido)tc++;});});
+      const uPct=tot>0?Math.round(tc/tot*100)+'%':'&#8212;';
+      const isInact=(allData.__inactive||[]).includes(u);
+      return `<div class="member-card" onclick="showUserProfile('${u.replace(/\\/g,'\\\\').replace(/'/g,"\\'")}',${ui})"><div class="member-left"><div class="av-team" style="background:${avColor(ui)};color:#fff;width:38px;height:38px;font-size:13px">${initials(u)}</div><div><div class="member-name">${esc(u)}${isInact?'<span class="badge-inactive">Inactivo</span>':''}</div><div class="member-stats">${ws.length} semana${ws.length!==1?'s':''} &nbsp;&#183;&nbsp; ${uPct} cumplimiento${pendConf?' &nbsp;&#183;&nbsp; <span style="color:#FAC775">Sin confirmar</span>':''}</div></div></div><span style="color:#4a5f74;font-size:18px">&#8250;</span></div>`;
+    }).join('');
+    html+=`</div></div><div class="card card-plain"><div class="ch ch-plain"><span class="ch-title">Semana a semana</span></div><div class="cb">`;
+    html+=allWeeks.map(w=>`<div class="hist-week"><p class="hist-week-lbl">${weekLabel(w)}</p>${users.filter(u=>allData[u]&&allData[u][w]).map((u,ui)=>{
+      const d=allData[u][w];const objs=d.objetivos||[];const confs=d.confirmaciones||[];
+      return `<div style="margin-bottom:14px"><div style="display:flex;align-items:center;gap:8px;margin-bottom:8px"><div class="av-team" style="background:${avColor(ui)};color:#fff;cursor:pointer" onclick="showUserProfile('${u.replace(/\\/g,'\\\\').replace(/'/g,"\\'")}',${ui})">${initials(u)}</div><span style="font-size:13px;font-weight:500;color:#fff">${esc(u)}</span>${!d.confirmaciones&&objs.length?'<span class="badge b-warn">Sin confirmar</span>':''}</div><div style="padding-left:36px;display:flex;flex-direction:column;gap:6px">${objs.map((o,i)=>{const conf=confs[i];const badge=conf===undefined?'<span class="badge b-pend">Pendiente</span>':conf.cumplido?'<span class="badge b-ok">&#10003; Cumplido</span>':'<span class="badge b-no">&#10007; No cumplido</span>';const links=conf&&conf.links&&conf.links.length?conf.links.map(l=>`<div class="hist-link">&#8599; <a href="${esc(l)}" target="_blank" style="color:#7ab8f5">${esc(l)}</a></div>`).join(''):'';return `<div class="hist-obj"><div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px"><span class="hist-obj-name">${esc(o)}</span>${badge}</div>${links}</div>`;}).join('')}</div></div>`;
+    }).join('')}</div>`).join('');
+    html+=`</div></div>`;
+  }
+  render(html);
+}
+
+function showUserProfile(u,ui){
+  setTopbar(`<div class="user-chip"><div class="avatar" style="background:#e8401c">BK</div><div><div class="u-name">Bautista</div><div class="u-week">Vista de jefe</div></div><button class="btn-ghost" onclick="logout()">Salir</button></div>`);
+  const ud=allData[u]||{};
+  const weeks=Object.keys(ud).sort().reverse();
+  let cumplidos=0,noCumplidos=0,sinConf=0,totalObjs=0;
+  weeks.forEach(w=>{
+    const d=ud[w];const objs=(d.objetivos||[]).length;totalObjs+=objs;
+    if(d.confirmaciones){d.confirmaciones.forEach(c=>{if(c.cumplido)cumplidos++;else noCumplidos++;});}
+    else if(objs>0)sinConf+=objs;
+  });
+  const pct=totalObjs>0?Math.round(cumplidos/totalObjs*100)+'%':'&#8212;';
+  let html=`<button class="back-btn" onclick="showBossPanel()">&#8592; Volver al equipo</button>
+    <div class="profile-header">
+      <div class="profile-avatar" style="background:${avColor(ui)}">${initials(u)}</div>
+      <div><div class="profile-name">${esc(u)}</div><div class="profile-meta">${weeks.length} semana${weeks.length!==1?'s':''} registrada${weeks.length!==1?'s':''}</div></div>
+    </div>
+    <div class="stat-row">
+      <div class="stat-pill"><div class="stat-pill-val" style="color:#9FE1CB">${cumplidos}</div><div class="stat-pill-lbl">Cumplidos</div></div>
+      <div class="stat-pill"><div class="stat-pill-val" style="color:#F09595">${noCumplidos}</div><div class="stat-pill-lbl">No cumplidos</div></div>
+      <div class="stat-pill"><div class="stat-pill-val" style="color:#FAC775">${sinConf}</div><div class="stat-pill-lbl">Sin confirmar</div></div>
+      <div class="stat-pill"><div class="stat-pill-val" style="color:#fff">${pct}</div><div class="stat-pill-lbl">Cumplimiento</div></div>
+    </div>`;
+  const isInactive=(allData.__inactive||[]).includes(u);
+  html+=`<div class="card card-plain"><div class="ch ch-plain"><span class="ch-title">Gesti&#243;n</span></div><div class="cb"><div class="admin-zone">
+    <button class="btn-deactivate" onclick="toggleDesactivar('${u.replace(/'/g,"\'")}','${ui}')">${isInactive?'&#10003; Reactivar usuario':'&#9888; Desactivar usuario'}</button>
+    <button class="btn-delete" onclick="confirmarEliminar('${u.replace(/'/g,"\'")}','${ui}')">&#215; Eliminar usuario y datos</button>
+  </div></div></div>`;
+  if(!weeks.length){
+    html+=`<div class="card card-plain"><div class="cb"><p class="empty">Sin objetivos cargados.</p></div></div>`;
+  } else {
+    html+=`<div class="card card-plain"><div class="ch ch-plain"><span class="ch-title">Historial completo</span></div><div class="cb">`;
+    html+=weeks.map(w=>{
+      const d=ud[w];const objs=d.objetivos||[];const confs=d.confirmaciones||[];
+      return `<div class="hist-week"><p class="hist-week-lbl">${weekLabel(w)}</p>${objs.map((o,i)=>{
+        const conf=confs[i];
+        const badge=conf===undefined?'<span class="badge b-pend">Sin confirmar</span>':conf.cumplido?'<span class="badge b-ok">&#10003; Cumplido</span>':'<span class="badge b-no">&#10007; No cumplido</span>';
+        const links=conf&&conf.links&&conf.links.length?conf.links.map(l=>`<div class="hist-link">&#8599; <a href="${esc(l)}" target="_blank" style="color:#7ab8f5">${esc(l)}</a></div>`).join(''):'';
+        return `<div class="hist-obj"><div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px"><span class="hist-obj-name">${esc(o)}</span>${badge}</div>${links}</div>`;
+      }).join('')}</div>`;
+    }).join('');
+    html+=`</div></div>`;
+  }
+  render(html);
+}
+
+async function toggleDesactivar(u,ui){
+  if(!allData.__inactive)allData.__inactive=[];
+  const idx=allData.__inactive.indexOf(u);
+  if(idx>-1)allData.__inactive.splice(idx,1);
+  else allData.__inactive.push(u);
+  await pushToRemote();
+  showUserProfile(u,ui);
+}
+
+function confirmarEliminar(u,ui){
+  showModal({
+    title:'&#191;Eliminás a '+esc(u)+'?',
+    body:'<strong style="color:#F09595">Esta acción es permanente.</strong> Se borrarán todos sus objetivos e historial. No se puede deshacer.',
+    onConfirm:`function(){eliminarUsuario('${u.replace(/'/g,"\'")}')}`
+  });
+}
+
+async function eliminarUsuario(u){
+  delete allData[u];
+  if(allData.__inactive)allData.__inactive=allData.__inactive.filter(x=>x!==u);
+  await pushToRemote();
+  showBossPanel();
+}
+
+let syncPromise=null;
+async function init(){
+  loadCache();
+  const savedUser=localStorage.getItem('ratio_user');
+  if(savedUser===BOSS_NAME){
+    userName=BOSS_NAME;
+    showBossPanel();
+  } else if(savedUser){
+    userName=savedUser;
+    showUserPanel();
+  } else {
+    showLogin();
+  }
+  syncPromise=syncFromRemote().then(()=>{
+    if(userName){
+      if(userName===BOSS_NAME) showBossPanel();
+      else showUserPanel();
+    }
+  });
+}
+init();
+</script>
+</body>
+</html>
