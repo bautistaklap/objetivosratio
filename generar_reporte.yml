@@ -1,0 +1,23 @@
+name: Generar reporte semanal
+
+on:
+  schedule:
+    - cron: '0 11 * * 1'
+  workflow_dispatch:
+
+jobs:
+  generar:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Instalar dependencias
+        run: pip install requests
+
+      - name: Ejecutar script de análisis
+        env:
+          GEMINI_KEY: ${{ secrets.GEMINI_KEY }}
+          JSONBIN_KEY: ${{ secrets.JSONBIN_KEY }}
+          REPORTES_BIN: ${{ secrets.REPORTES_BIN }}
+          TRACKER_BIN: 69dfa22a856a68218938e40e
+        run: python3 generar_reporte.py
