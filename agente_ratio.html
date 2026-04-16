@@ -1,0 +1,498 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Análisis de Productividad · Ratio</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#111a26;min-height:100vh;padding:1.5rem;color:#fff}
+.app{background:#1a2535;border-radius:16px;padding:1.75rem;max-width:900px;margin:0 auto;min-height:500px}
+.topbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:1.75rem;flex-wrap:wrap;gap:10px}
+.app-title{font-size:20px;font-weight:500;color:#fff}
+.btn-ghost{font-size:12px;color:#7a8fa6;background:transparent;border:0.5px solid #2e3f54;border-radius:8px;padding:5px 12px;cursor:pointer;font-family:inherit}
+.btn-ghost:hover{color:#fff;border-color:#4a5f74}
+.card{border-radius:12px;margin-bottom:1.25rem;overflow:hidden;background:#212f42;border:0.5px solid #2e3f54}
+.card-red{border-color:#e8401c}
+.ch{padding:14px 18px;display:flex;justify-content:space-between;align-items:center;border-bottom:0.5px solid #2e3f54;flex-wrap:wrap;gap:8px}
+.ch-plain{background:#263347}
+.ch-red{background:#2a1e1e}
+.ch-green{background:#1a3a28}
+.ch-blue{background:#1e2a3a}
+.ch-amber{background:#2a1e0e}
+.ch-title{font-size:15px;font-weight:500;color:#fff}
+.cb{padding:1.25rem 1.5rem}
+.inp-dark{width:100%;font-size:14px;padding:9px 12px;border:0.5px solid #2e3f54;border-radius:8px;background:#1a2535;color:#fff;font-family:inherit;outline:none}
+.inp-dark::placeholder{color:#4a5f74}
+.save-btn{width:100%;padding:11px;font-size:14px;font-weight:500;border:none;border-radius:8px;cursor:pointer;font-family:inherit;background:#e8401c;color:#fff}
+.save-btn:hover{opacity:0.88}
+.err-msg{font-size:12px;color:#F09595;margin-top:6px}
+.loading{text-align:center;padding:3rem 0}
+.spinner{display:inline-block;width:24px;height:24px;border:2px solid #2e3f54;border-top-color:#e8401c;border-radius:50%;animation:spin 0.7s linear infinite;margin-right:10px;vertical-align:middle}
+@keyframes spin{to{transform:rotate(360deg)}}
+.loading-step{font-size:13px;color:#7a8fa6;margin-top:8px}
+.section-title{font-size:18px;font-weight:500;color:#fff;margin-bottom:1.25rem;padding-bottom:10px;border-bottom:0.5px solid #2e3f54}
+.equipo-block{margin-bottom:2rem}
+.equipo-title{font-size:16px;font-weight:500;color:#e8401c;margin-bottom:1rem;display:flex;align-items:center;gap:8px}
+.integrante-card{background:#1a2535;border:0.5px solid #2e3f54;border-radius:10px;margin-bottom:10px;overflow:hidden}
+.integrante-header{padding:12px 16px;background:#212f42;border-bottom:0.5px solid #2e3f54;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px}
+.integrante-nombre{font-size:14px;font-weight:500;color:#fff}
+.score{font-size:13px;font-weight:500;padding:4px 12px;border-radius:20px}
+.score-alto{background:#1a3a28;color:#9FE1CB;border:0.5px solid #3B6D11}
+.score-medio{background:#2a1e0e;color:#FAC775;border:0.5px solid #633806}
+.score-bajo{background:#3a1a1a;color:#F09595;border:0.5px solid #A32D2D}
+.integrante-body{padding:14px 16px;display:flex;flex-direction:column;gap:10px}
+.row-label{font-size:11px;color:#7a8fa6;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:3px}
+.row-value{font-size:13px;color:#fff;line-height:1.55}
+.row-value.muted{color:#7a8fa6}
+.sugerencia{font-size:12px;color:#FAC775;padding:7px 10px;background:#2a1e0e;border-radius:6px;border-left:2px solid #854F0B;line-height:1.5}
+.mvp-card{background:#1a3a28;border:0.5px solid #3B6D11;border-radius:10px;padding:14px 16px;margin-bottom:1rem}
+.mvp-label{font-size:11px;color:#9FE1CB;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:4px}
+.mvp-nombre{font-size:15px;font-weight:500;color:#9FE1CB}
+.mvp-razon{font-size:12px;color:#7a8fa6;margin-top:4px;line-height:1.5}
+.balance-area{background:#212f42;border:0.5px solid #2e3f54;border-radius:10px;padding:14px 16px;margin-bottom:1rem}
+.balance-label{font-size:11px;color:#7a8fa6;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:6px}
+.balance-text{font-size:13px;color:#fff;line-height:1.6}
+.badge-pos{display:inline-block;font-size:11px;padding:3px 10px;border-radius:20px;background:#1a3a28;color:#9FE1CB;border:0.5px solid #3B6D11;font-weight:500}
+.badge-neg{display:inline-block;font-size:11px;padding:3px 10px;border-radius:20px;background:#3a1a1a;color:#F09595;border:0.5px solid #A32D2D;font-weight:500}
+.badge-neu{display:inline-block;font-size:11px;padding:3px 10px;border-radius:20px;background:#212f42;color:#7a8fa6;border:0.5px solid #2e3f54;font-weight:500}
+.score-general{font-size:36px;font-weight:500;text-align:center;padding:1rem 0}
+.alerta{background:#3a1a1a;border:0.5px solid #A32D2D;border-radius:8px;padding:10px 14px;margin-bottom:8px}
+.alerta-titulo{font-size:13px;font-weight:500;color:#F09595;margin-bottom:4px}
+.alerta-desc{font-size:12px;color:#7a8fa6;line-height:1.5}
+.week-selector{display:flex;gap:8px;align-items:center;margin-bottom:1.25rem;flex-wrap:wrap}
+.week-btn{font-size:12px;padding:6px 14px;border:0.5px solid #2e3f54;border-radius:20px;background:transparent;color:#7a8fa6;cursor:pointer;font-family:inherit}
+.week-btn.active{background:#e8401c;color:#fff;border-color:#e8401c}
+.week-btn:hover{color:#fff;border-color:#4a5f74}
+.send-btn{font-size:13px;font-weight:500;padding:9px 20px;border:none;border-radius:8px;cursor:pointer;font-family:inherit;background:#378ADD;color:#fff;margin-top:1rem}
+.send-btn:hover{opacity:0.88}
+.divider{border:none;border-top:0.5px solid #2e3f54;margin:1.5rem 0}
+.prod-bar{height:6px;border-radius:3px;background:#2e3f54;margin-top:6px;overflow:hidden}
+.prod-bar-fill{height:100%;border-radius:3px;background:#e8401c}
+.meta-info{font-size:11px;color:#4a5f74;text-align:right;margin-bottom:1rem}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="topbar">
+    <p class="app-title">Análisis de productividad <span style="color:#e8401c">·</span> Ratio</p>
+    <div id="topbar-right"></div>
+  </div>
+  <div id="view"><div class="loading"><span class="spinner"></span>Cargando...</div></div>
+</div>
+
+<script>
+const AGENTE_PASS='181222Arg';
+const TRACKER_BIN='69dfa22a856a68218938e40e';
+const REPORTES_BIN='69e106d136566621a8be40f1';
+const JSONBIN_KEY='$2a$10$uej8hfPUqpXaircuYHffuOPDP1ekVl9rfu/D1xwhCxxGS2GLQA0EO';
+const GEMINI_KEY='AIzaSyCYpVJFese6cEp5VCmOpihujIL8Ge64XHg';
+const WEB3FORMS_KEY='ed57b5f8-fc8b-434b-b744-3eda6cb4c6d7';
+const SEM_MS=7*24*60*60*1000;
+
+const EQUIPO_DATA={
+  'Agustín':{equipo:'Guión',rol:'Guionista',horario:'9-17hs',tareas:'4-5 guiones por día, una nota por guión, una placa prediseñada por guión',esperado:'20-25 guiones/semana + notas + placas'},
+  'Juan':{equipo:'Guión',rol:'Guionista',horario:'9-17hs',tareas:'4-5 guiones por día, twitter (ideas ideológicas), notas propias + las de Alfredo, placas propias + las de Alfredo',esperado:'20-25 guiones/semana + notas + placas + twitter'},
+  'Alfredo':{equipo:'Guión',rol:'Guionista/Técnico/Locutor',horario:'9-15.30/16hs',tareas:'Asegura funcionamiento de cámaras/luces/estudios, 3 guiones antes del almuerzo, ~19 guiones por semana, participa en grabaciones poniendo su voz',esperado:'19 guiones/semana + técnica + grabaciones'},
+  'Clara':{equipo:'Digital',rol:'CM',horario:'14-17/18hs (part-time)',tareas:'Copy por video, programar videos en redes, placas (4/semana), informes jueves y viernes, Abzurdo de la semana, tema marca',esperado:'Copies diarios + 4 placas/semana + informes + programación redes'},
+  'Malena':{equipo:'Digital',rol:'Diseñadora',horario:'14-17/18hs o 9.15-13hs (part-time)',tareas:'Revisar notion para portadas, calendarizar videos, placas (4/semana compartidas con Clara), newsletter, 5 noticias de la semana, informes jueves y viernes, tema marca',esperado:'Portadas + 4 placas/semana + newsletter + 5 noticias + informes'},
+  'Sofía':{equipo:'Digital',rol:'Líder',horario:'10-17hs',tareas:'Búsqueda de temas, reorganización constante del día a día, decidir contenido público, correcciones con el equipo, contenido de marca, calendarización, supervisar informes',esperado:'Liderazgo activo: temas + decisiones editoriales + correcciones + marca'},
+  'Candela':{equipo:'Producción',rol:'Productora',horario:'9.30-10.15 / 17-18.20hs',tareas:'Organiza videos, coordina CP, pasa crudos, busca recursos para editores, pendiente de coyunturas, 32 videos a producir por semana',esperado:'32 videos producidos/semana + coordinación CP + recursos'},
+  'Luciana':{equipo:'Producción',rol:'Productora',horario:'9/9.30-17hs',tareas:'Organiza videos, habla y coordina con CP, hace que el CP grabe, pasa crudos, búsqueda de recursos, pendiente de coyunturas, 32 videos a producir por semana',esperado:'32 videos producidos/semana + coordinación CP + recursos'},
+  'Manuel':{equipo:'Paid Media',rol:'Paid Media',horario:'9/9.20-17hs',tareas:'Chequeo de pauta funcionando, armar pautado del día, planificar presupuesto, arrancar a pautar (100-150/semana), informes para la semana siguiente, los jueves diagrama prioridad de trabajo',esperado:'100-150 pautas/semana en Meta/Google/TikTok/YT + informes'},
+  'Victoria':{equipo:'Paid Media',rol:'Paid Media',horario:'8-9 / 15-17hs (jornada completa flexible)',tareas:'Chequeo de pauta funcionando, armar pautado del día, planificar presupuesto, arrancar a pautar (100-150/semana), informes para la semana siguiente',esperado:'100-150 pautas/semana en Meta/Google/TikTok/YT + informes'},
+};
+
+function getWeekKey(date){
+  const d=new Date(date);d.setHours(0,0,0,0);
+  const day=d.getDay();
+  const fri=new Date(d);
+  fri.setDate(d.getDate()-((day>=5)?(day-5):(day+2)));
+  return fri.toISOString().slice(0,10);
+}
+function weekLabel(key){
+  const d=new Date(key+'T12:00:00');
+  const end=new Date(d);end.setDate(d.getDate()+6);
+  const fmt=dt=>dt.toLocaleDateString('es-AR',{day:'2-digit',month:'2-digit'});
+  return fmt(d)+' – '+fmt(end);
+}
+
+function render(html){document.getElementById('view').innerHTML=html;}
+function setTopbar(html){document.getElementById('topbar-right').innerHTML=html;}
+function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+
+async function fetchTracker(){
+  const r=await fetch('https://api.jsonbin.io/v3/b/'+TRACKER_BIN+'/latest',{headers:{'X-Master-Key':JSONBIN_KEY}});
+  const j=await r.json();return j.record?.datos||{};
+}
+async function fetchReportes(){
+  try{
+    const r=await fetch('https://api.jsonbin.io/v3/b/'+REPORTES_BIN+'/latest',{headers:{'X-Master-Key':JSONBIN_KEY}});
+    const j=await r.json();return j.record?.reportes||{};
+  }catch(e){return{};}
+}
+async function saveReporte(weekKey,reporte){
+  const reportes=await fetchReportes();
+  reportes[weekKey]=reporte;
+  await fetch('https://api.jsonbin.io/v3/b/'+REPORTES_BIN,{
+    method:'PUT',
+    headers:{'Content-Type':'application/json','X-Master-Key':JSONBIN_KEY},
+    body:JSON.stringify({reportes})
+  });
+}
+
+async function generarAnalisis(trackerData,weekKey){
+  const usuarios=Object.keys(trackerData).filter(u=>u!=='__inactive');
+  const datosPersonas=usuarios.map(u=>{
+    const semana=trackerData[u]?.[weekKey];
+    const info=EQUIPO_DATA[u];
+    if(!semana||!info)return null;
+    const objs=semana.objetivos||[];
+    const confs=semana.confirmaciones||[];
+    const cumplidos=confs.filter(c=>c.cumplido).length;
+    const noCumplidos=confs.filter(c=>!c.cumplido).length;
+    const sinConf=objs.length-confs.length;
+    const justificaciones=confs.filter(c=>!c.cumplido&&c.justificacion).map(c=>c.justificacion);
+    return{
+      nombre:u,
+      equipo:info.equipo,
+      rol:info.rol,
+      horario:info.horario,
+      esperado:info.esperado,
+      tareas:info.tareas,
+      objetivos:objs,
+      cumplidos,
+      noCumplidos,
+      sinConf,
+      justificaciones,
+      totalObjs:objs.length
+    };
+  }).filter(Boolean);
+
+  if(!datosPersonas.length)return null;
+
+  const prompt=`Sos un agente senior especializado en análisis de performance, productividad y rendimiento de equipos de trabajo. Tu análisis es directo, real, sin suavizar nada. Cuando algo está mal, lo decís. Cuando algo está bien, también.
+
+CONTEXTO DEL EQUIPO - RATIO:
+${JSON.stringify(EQUIPO_DATA,null,2)}
+
+DATOS DE LA SEMANA ${weekLabel(weekKey)}:
+${JSON.stringify(datosPersonas,null,2)}
+
+Generá un análisis completo en formato JSON con esta estructura exacta:
+{
+  "semana": "${weekLabel(weekKey)}",
+  "equipos": [
+    {
+      "nombre": "nombre del equipo",
+      "integrantes": [
+        {
+          "nombre": "nombre",
+          "cumplimiento": "análisis del nivel de cumplimiento de objetivos",
+          "productividad": "análisis de productividad esperada vs lograda considerando su rol, horario y tareas base",
+          "balance": "balance real de la semana, directo y sin filtros",
+          "score": número del 0 al 10,
+          "sugerencias": ["sugerencia 1", "sugerencia 2"],
+          "calidad_objetivos": "evaluación de si los objetivos cargados son claros, medibles, exigentes y suficientes en cantidad"
+        }
+      ],
+      "mvp": {
+        "nombre": "nombre del MVP",
+        "justificacion": "por qué es el MVP de la semana"
+      },
+      "balance_area": "análisis del área como unidad, cómo estuvo la semana"
+    }
+  ],
+  "analisis_general": {
+    "analisis_cuali": "análisis cualitativo del equipo completo, directo y real",
+    "balance": "positivo|negativo|neutro",
+    "score_semana": número del 0 al 10,
+    "sugerencias": ["sugerencia 1", "sugerencia 2", "sugerencia 3"]
+  },
+  "alertas": [
+    {
+      "titulo": "título de la alerta",
+      "descripcion": "descripción de qué está pasando y por qué es urgente"
+    }
+  ]
+}
+
+Respondé SOLO con el JSON, sin texto adicional, sin markdown, sin backticks.`;
+
+  const resp=await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-pro:generateContent?key='+GEMINI_KEY,{
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({contents:[{parts:[{text:prompt}]}],generationConfig:{temperature:0.3,maxOutputTokens:8000}})
+  });
+  const data=await resp.json();
+  const text=data.candidates?.[0]?.content?.parts?.[0]?.text||'';
+  const clean=text.replace(/```json|```/g,'').trim();
+  return JSON.parse(clean);
+}
+
+function scoreClass(s){
+  if(s>=7)return'score-alto';
+  if(s>=4)return'score-medio';
+  return'score-bajo';
+}
+function scoreColor(s){
+  if(s>=7)return'#9FE1CB';
+  if(s>=4)return'#FAC775';
+  return'#F09595';
+}
+function balanceBadge(b){
+  if(!b)return'';
+  const bl=b.toLowerCase();
+  if(bl.includes('positivo'))return'<span class="badge-pos">Positivo</span>';
+  if(bl.includes('negativo'))return'<span class="badge-neg">Negativo</span>';
+  return'<span class="badge-neu">Neutro</span>';
+}
+
+function renderAnalisis(data,weekKey){
+  if(!data){render('<div style="text-align:center;padding:3rem;color:#7a8fa6;font-size:14px">No hay datos disponibles para esta semana.</div>');return;}
+
+  let html=`<div class="meta-info">Análisis generado para la semana del ${esc(data.semana||weekLabel(weekKey))}</div>`;
+
+  data.equipos?.forEach(eq=>{
+    html+=`<div class="equipo-block">
+      <div class="equipo-title">
+        <span style="width:8px;height:8px;border-radius:50%;background:#e8401c;display:inline-block"></span>
+        ${esc(eq.nombre)}
+      </div>`;
+
+    eq.integrantes?.forEach(p=>{
+      const sc=p.score||0;
+      html+=`<div class="integrante-card">
+        <div class="integrante-header">
+          <span class="integrante-nombre">${esc(p.nombre)}</span>
+          <span class="score ${scoreClass(sc)}">${sc}/10</span>
+        </div>
+        <div class="integrante-body">
+          <div>
+            <div class="row-label">Cumplimiento de objetivos</div>
+            <div class="row-value">${esc(p.cumplimiento||'')}</div>
+          </div>
+          <div>
+            <div class="row-label">Productividad</div>
+            <div class="row-value">${esc(p.productividad||'')}</div>
+            <div class="prod-bar"><div class="prod-bar-fill" style="width:${Math.min(sc*10,100)}%"></div></div>
+          </div>
+          <div>
+            <div class="row-label">Balance de la semana</div>
+            <div class="row-value">${esc(p.balance||'')}</div>
+          </div>
+          ${p.calidad_objetivos?`<div>
+            <div class="row-label">Calidad de objetivos</div>
+            <div class="row-value muted">${esc(p.calidad_objetivos)}</div>
+          </div>`:''}
+          ${p.sugerencias?.length?`<div>
+            <div class="row-label">Sugerencias</div>
+            ${p.sugerencias.map(s=>`<div class="sugerencia">${esc(s)}</div>`).join('')}
+          </div>`:''}
+        </div>
+      </div>`;
+    });
+
+    if(eq.mvp){
+      html+=`<div class="mvp-card">
+        <div class="mvp-label">Integrante destacado de la semana</div>
+        <div class="mvp-nombre">${esc(eq.mvp.nombre)}</div>
+        <div class="mvp-razon">${esc(eq.mvp.justificacion||'')}</div>
+      </div>`;
+    }
+
+    if(eq.balance_area){
+      html+=`<div class="balance-area">
+        <div class="balance-label">Balance del área</div>
+        <div class="balance-text">${esc(eq.balance_area)}</div>
+      </div>`;
+    }
+
+    html+=`</div><div class="divider"></div>`;
+  });
+
+  const ag=data.analisis_general;
+  if(ag){
+    html+=`<div class="section-title">Análisis general del equipo</div>
+    <div class="card"><div class="ch ch-plain"><span class="ch-title">Análisis cualitativo</span></div>
+    <div class="cb"><div class="row-value" style="line-height:1.7">${esc(ag.analisis_cuali||'')}</div></div></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:1.25rem">
+      <div class="card"><div class="cb" style="text-align:center">
+        <div class="row-label" style="text-align:center;margin-bottom:8px">Balance</div>
+        ${balanceBadge(ag.balance)}
+      </div></div>
+      <div class="card"><div class="cb" style="text-align:center">
+        <div class="row-label" style="text-align:center;margin-bottom:4px">Puntaje de la semana</div>
+        <div class="score-general" style="color:${scoreColor(ag.score_semana||0)}">${ag.score_semana||0}/10</div>
+      </div></div>
+    </div>`;
+
+    if(ag.sugerencias?.length){
+      html+=`<div class="card"><div class="ch ch-amber"><span class="ch-title">Sugerencias para la semana siguiente</span></div><div class="cb">
+        ${ag.sugerencias.map(s=>`<div class="sugerencia" style="margin-bottom:8px">${esc(s)}</div>`).join('')}
+      </div></div>`;
+    }
+  }
+
+  if(data.alertas?.length){
+    html+=`<div class="divider"></div><div class="section-title" style="color:#F09595">Alertas</div>`;
+    data.alertas.forEach(a=>{
+      html+=`<div class="alerta">
+        <div class="alerta-titulo">⚠ ${esc(a.titulo||'')}</div>
+        <div class="alerta-desc">${esc(a.descripcion||'')}</div>
+      </div>`;
+    });
+  }
+
+  html+=`<div class="divider"></div>
+  <button class="send-btn" onclick="enviarReporteMail()">Enviar resumen por mail</button>`;
+
+  render(html);
+}
+
+async function enviarReporteMail(){
+  const btn=document.querySelector('.send-btn');
+  if(btn){btn.textContent='Enviando...';btn.disabled=true;}
+  try{
+    const reportes=await fetchReportes();
+    const keys=Object.keys(reportes).sort().reverse();
+    if(!keys.length){alert('No hay reporte generado.');return;}
+    const r=reportes[keys[0]];
+    const ag=r.analisis_general||{};
+
+    let resumen=`ANÁLISIS SEMANAL DE PRODUCTIVIDAD - RATIO\nSemana: ${r.semana||''}\n\n`;
+    resumen+=`RESUMEN EJECUTIVO\nBalance: ${ag.balance||''} | Puntaje: ${ag.score_semana||''}/10\n${ag.analisis_cuali||''}\n\n`;
+
+    r.equipos?.forEach(eq=>{
+      resumen+=`EQUIPO ${eq.nombre?.toUpperCase()}\n`;
+      eq.integrantes?.forEach(p=>{resumen+=`- ${p.nombre}: ${p.score}/10 | ${p.balance}\n`;});
+      resumen+=`MVP: ${eq.mvp?.nombre||''} - ${eq.mvp?.justificacion||''}\n`;
+      resumen+=`Balance área: ${eq.balance_area||''}\n\n`;
+    });
+
+    if(r.alertas?.length){
+      resumen+=`ALERTAS\n`;
+      r.alertas.forEach(a=>{resumen+=`⚠ ${a.titulo}: ${a.descripcion}\n`;});
+    }
+
+    if(ag.sugerencias?.length){
+      resumen+=`\nSUGERENCIAS\n${ag.sugerencias.map(s=>`• ${s}`).join('\n')}`;
+    }
+
+    await fetch('https://api.web3forms.com/submit',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({
+        access_key:WEB3FORMS_KEY,
+        subject:`Análisis semanal Ratio - ${r.semana||''}`,
+        from_name:'Agente Ratio',
+        message:resumen
+      })
+    });
+    if(btn){btn.textContent='✓ Enviado';btn.style.background='#1a3a28';btn.style.color='#9FE1CB';}
+  }catch(e){
+    if(btn){btn.textContent='Error al enviar';btn.disabled=false;}
+  }
+}
+
+async function showPanel(weekKey){
+  setTopbar(`<button class="btn-ghost" onclick="logout()">Salir</button>`);
+  render(`<div class="loading"><span class="spinner"></span><br><div class="loading-step">Cargando reporte...</div></div>`);
+
+  const reportes=await fetchReportes();
+
+  if(reportes[weekKey]){
+    const prevWeekKey=getWeekKey(new Date(new Date(weekKey+'T12:00:00').getTime()-SEM_MS));
+    const allWeeks=[weekKey];
+    if(reportes[prevWeekKey])allWeeks.push(prevWeekKey);
+
+    let weekSelector=`<div class="week-selector">`;
+    allWeeks.forEach(w=>{
+      weekSelector+=`<button class="week-btn ${w===weekKey?'active':''}" onclick="showPanel('${w}')">${weekLabel(w)}</button>`;
+    });
+    weekSelector+=`</div>`;
+
+    const container=document.getElementById('view');
+    container.innerHTML=weekSelector;
+    const content=document.createElement('div');
+    container.appendChild(content);
+    content.id='analisis-content';
+    document.getElementById('analisis-content').innerHTML='';
+
+    const tempDiv=document.createElement('div');
+    document.getElementById('view').appendChild(tempDiv);
+    renderAnalisisInto(reportes[weekKey],weekKey,tempDiv);
+    return;
+  }
+
+  render(`<div class="loading"><span class="spinner"></span><br><div class="loading-step">Generando análisis con IA...</div></div>`);
+
+  try{
+    const trackerData=await fetchTracker();
+    const analisis=await generarAnalisis(trackerData,weekKey);
+    if(analisis){
+      await saveReporte(weekKey,analisis);
+      renderAnalisis(analisis,weekKey);
+    } else {
+      render('<div style="text-align:center;padding:3rem;color:#7a8fa6">No hay suficientes datos para esta semana.</div>');
+    }
+  }catch(e){
+    render(`<div style="text-align:center;padding:3rem;color:#F09595;font-size:13px">Error al generar el análisis: ${e.message}</div>`);
+  }
+}
+
+function renderAnalisisInto(data,weekKey,container){
+  const tmp=document.createElement('div');
+  document.body.appendChild(tmp);
+  tmp.id='_tmp_render';
+  renderAnalisis(data,weekKey);
+  const content=document.getElementById('view').innerHTML;
+  document.body.removeChild(tmp);
+  container.innerHTML='';
+  renderAnalisis(data,weekKey);
+}
+
+function showLogin(){
+  setTopbar('');
+  render(`<div class="card card-red" style="max-width:380px;margin:0 auto">
+    <div class="ch ch-red"><span class="ch-title">Acceso restringido</span></div>
+    <div class="cb">
+      <p style="font-size:13px;color:#7a8fa6;margin-bottom:14px">Ingresá la contraseña para acceder al panel de análisis.</p>
+      <input class="inp-dark" type="password" id="inp-pass" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin()">
+      <div style="margin-top:12px"><button class="save-btn" onclick="doLogin()">Entrar</button></div>
+      <p class="err-msg" id="err-pass" style="display:none"></p>
+    </div>
+  </div>`);
+}
+
+function doLogin(){
+  const p=document.getElementById('inp-pass').value;
+  const err=document.getElementById('err-pass');
+  if(p===AGENTE_PASS){
+    localStorage.setItem('ratio_agente_auth','1');
+    const weekKey=getWeekKey(new Date(Date.now()-SEM_MS));
+    showPanel(weekKey);
+  } else {
+    err.textContent='Contraseña incorrecta.';err.style.display='block';
+    document.getElementById('inp-pass').value='';
+  }
+}
+
+function logout(){
+  localStorage.removeItem('ratio_agente_auth');
+  showLogin();
+}
+
+function init(){
+  if(localStorage.getItem('ratio_agente_auth')==='1'){
+    const weekKey=getWeekKey(new Date(Date.now()-SEM_MS));
+    showPanel(weekKey);
+  } else {
+    showLogin();
+  }
+}
+
+init();
+</script>
+</body>
+</html>
