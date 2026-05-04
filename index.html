@@ -1,5 +1,3 @@
-Acá va el código completo:
-
 ```html
 <!DOCTYPE html>
 <html lang="es">
@@ -246,18 +244,22 @@ function showUserPanel(){
   setTopbar(`<div class="user-chip"><div class="avatar" style="background:#e8401c">${initials(userName)}</div><div><div class="u-name">${esc(userName)}</div><div class="u-week">${weekLabel(currentWeek)}</div></div><button class="btn-ghost" onclick="logout()">Salir</button></div>`);
   const userData=allData[userName]||{};
   const curData=userData[currentWeek];
-  const prevData=userData[prevWeek];
-  const hasPrevPending=prevData&&prevData.objetivos&&prevData.objetivos.length&&!prevData.confirmaciones;
+  const pendingWeeks=Object.keys(userData).filter(w=>w!==currentWeek&&userData[w].objetivos&&userData[w].objetivos.length&&!userData[w].confirmaciones).sort().reverse();
+  const hasPendingWeeks=pendingWeeks.length>0;
   let html='';
   if(curData&&curData.objetivos&&curData.objetivos.length){
     html+=`<div class="card card-plain"><div class="ch ch-plain"><span class="ch-title">Semana actual</span><span class="ch-date">${weekLabel(currentWeek)}</span></div><div class="cb"><div class="alert-ok">&#10003; Objetivos guardados para esta semana</div><div style="margin-top:12px">${curData.objetivos.map((o,i)=>`<div class="obj-saved-row">${i+1}. ${esc(o)}</div>`).join('')}</div></div></div>`;
   } else {
     html+=`<div class="sec-label"><div class="sec-num sec-red">1</div><span class="sec-txt">Objetivos de esta semana</span></div><div class="card card-red"><div class="ch ch-red"><span class="ch-title">Semana nueva</span><span class="ch-date">${weekLabel(currentWeek)}</span></div><div class="cb"><div id="objs-inputs"></div><button class="add-obj-btn" onclick="addObj()"><svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M7 1v12M1 7h12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>Agregar objetivo</button><div class="save-zone"><p class="save-warning">&#9888;&nbsp;<strong style="color:#FAC775">Atenci&#243;n:</strong> una vez guardados, los objetivos no se pueden editar ni eliminar.</p><button class="save-btn save-red" onclick="confirmarGuardarObjetivos()">Guardar objetivos</button></div><p class="err-msg" id="err-obj" style="display:none"></p></div></div>`;
   }
-  if(hasPrevPending){
-    html+=`<div class="sec-label" style="margin-top:0.25rem"><div class="sec-num sec-blue">2</div><span class="sec-txt">Confirmar semana anterior</span></div><div class="card card-blue"><div class="ch ch-blue"><span class="ch-title">Semana pasada</span><span class="ch-date">${weekLabel(prevWeek)}</span></div><div class="cb">${prevData.objetivos.map((o,i)=>`<div class="obj-conf"><div class="obj-conf-top"><p class="obj-conf-name">${i+1}. ${esc(o)}</p><div style="display:flex;gap:8px;flex-wrap:wrap"><span class="rpill idle" id="rpill-ok-${i}" onclick="selectConf(${i},'si')">&#10003; Cumplido</span><span class="rpill idle" id="rpill-no-${i}" onclick="selectConf(${i},'no')">&#10007; No cumplido</span></div></div><div class="obj-conf-links"><p class="link-lbl">Links de evidencia</p><div id="links-${i}"><div class="link-row-inp"><input placeholder="https://..."><button class="del-link" onclick="this.parentElement.remove()">&#215;</button></div></div><button class="add-link-btn" onclick="addLink(${i})">+ Otro link</button></div><div class="justif-area" id="justif-area-${i}"><p class="justif-lbl">&#128172; Motivo de incumplimiento</p><textarea class="justif-textarea" id="justif-${i}" placeholder="Contá brevemente por qué no se pudo cumplir este objetivo..."></textarea></div></div>`).join('')}<div class="save-zone"><p class="save-warning" style="border-left-color:#378ADD">&#9888;&nbsp;<strong style="color:#FAC775">Atenci&#243;n:</strong> una vez confirmado, no podr&#225;s modificar esta semana.</p><button class="save-btn save-blue" onclick="confirmarGuardarConf()">Guardar confirmaciones</button></div><p class="err-msg" id="err-conf" style="display:none"></p></div></div>`;
+  if(hasPendingWeeks){
+    html+=`<div class="sec-label" style="margin-top:0.25rem"><div class="sec-num sec-blue">2</div><span class="sec-txt">Semanas pendientes de confirmaci&#243;n</span></div>`;
+    pendingWeeks.forEach((pw,pi)=>{
+      const pwData=userData[pw];
+      html+=`<div class="card card-blue" style="margin-bottom:1rem"><div class="ch ch-blue"><span class="ch-title">Semana del ${weekLabel(pw)}</span><span class="ch-date">${weekLabel(pw)}</span></div><div class="cb">${pwData.objetivos.map((o,i)=>`<div class="obj-conf"><div class="obj-conf-top"><p class="obj-conf-name">${i+1}. ${esc(o)}</p><div style="display:flex;gap:8px;flex-wrap:wrap"><span class="rpill idle" id="rpill-ok-${pw}-${i}" onclick="selectConf('${pw}',${i},'si')">&#10003; Cumplido</span><span class="rpill idle" id="rpill-no-${pw}-${i}" onclick="selectConf('${pw}',${i},'no')">&#10007; No cumplido</span></div></div><div class="obj-conf-links"><p class="link-lbl">Links de evidencia</p><div id="links-${pw}-${i}"><div class="link-row-inp"><input placeholder="https://..."><button class="del-link" onclick="this.parentElement.remove()">&#215;</button></div></div><button class="add-link-btn" onclick="addLink('${pw}',${i})">+ Otro link</button></div><div class="justif-area" id="justif-area-${pw}-${i}"><p class="justif-lbl">&#128172; Motivo de incumplimiento</p><textarea class="justif-textarea" id="justif-${pw}-${i}" placeholder="Contá brevemente por qué no se pudo cumplir este objetivo..."></textarea></div></div>`).join('')}<div class="save-zone"><p class="save-warning" style="border-left-color:#378ADD">&#9888;&nbsp;<strong style="color:#FAC775">Atenci&#243;n:</strong> una vez confirmado, no podr&#225;s modificar esta semana.</p><button class="save-btn save-blue" onclick="confirmarGuardarConf('${pw}')">Guardar confirmaciones</button></div><p class="err-msg" id="err-conf-${pw}" style="display:none"></p></div></div>`;
+    });
   }
-  const histWeeks=Object.keys(userData).filter(w=>w!==currentWeek&&(w!==prevWeek||!hasPrevPending)).sort().reverse();
+  const histWeeks=Object.keys(userData).filter(w=>w!==currentWeek&&!pendingWeeks.includes(w)).sort().reverse();
   if(histWeeks.length){html+=`<div class="card card-plain"><div class="ch ch-plain"><span class="ch-title">Mi historial</span></div><div class="cb">${renderHistorial(userData,histWeeks)}</div></div>`;}
   render(html);
   if(!curData||!curData.objetivos||!curData.objetivos.length){objCount=0;document.getElementById('objs-inputs').innerHTML='';addObj();}
@@ -271,18 +273,20 @@ function addObj(val=''){
   d.innerHTML=`<span class="obj-row-num">${String(objCount).padStart(2,'0')}</span><input placeholder="Describ\u00ed tu objetivo" value="${val.replace(/"/g,'&quot;')}"><button class="del-btn" onclick="document.getElementById('${id}').remove()">&#215;</button>`;
   c.appendChild(d);
 }
-function addLink(i){
-  const c=document.getElementById('links-'+i);if(!c)return;
+function addLink(wk,i){
+  const c=document.getElementById('links-'+wk+'-'+i);if(!c)return;
   const d=document.createElement('div');d.className='link-row-inp';
   d.innerHTML=`<input placeholder="https://..."><button class="del-link" onclick="this.parentElement.remove()">&#215;</button>`;
   c.appendChild(d);
 }
 const confSelections={};
-function selectConf(i,val){
-  confSelections[i]=val;
-  const ok=document.getElementById('rpill-ok-'+i);const no=document.getElementById('rpill-no-'+i);
+function selectConf(wk,i,val){
+  if(!confSelections[wk])confSelections[wk]={};
+  confSelections[wk][i]=val;
+  const ok=document.getElementById('rpill-ok-'+wk+'-'+i);
+  const no=document.getElementById('rpill-no-'+wk+'-'+i);
   if(ok&&no){ok.className='rpill'+(val==='si'?' ok':' idle');no.className='rpill'+(val==='no'?' no':' idle');}
-  const justifArea=document.getElementById('justif-area-'+i);
+  const justifArea=document.getElementById('justif-area-'+wk+'-'+i);
   if(justifArea){justifArea.classList.toggle('visible',val==='no');}
 }
 function confirmarGuardarObjetivos(){
@@ -293,15 +297,16 @@ function confirmarGuardarObjetivos(){
   const lista=objs.map((o,i)=>`<div style="background:#1a2535;border-radius:6px;padding:6px 10px;margin-bottom:5px;font-size:12px;color:#fff;text-align:left">${i+1}. ${esc(o)}</div>`).join('');
   showModal({title:'&#191;Confirm&#225;s estos objetivos?',body:`${lista}<br><strong style="color:#FAC775">&#9888; No podr&#225;s editarlos despu&#233;s de guardar.</strong>`,onConfirm:'guardarObjetivos'});
 }
-function confirmarGuardarConf(){
-  const err=document.getElementById('err-conf');
-  const prevData=allData[userName]&&allData[userName][prevWeek];
-  if(!prevData){err.textContent='Error inesperado.';err.style.display='block';return;}
+function confirmarGuardarConf(wk){
+  const err=document.getElementById('err-conf-'+wk);
+  const prevData=allData[userName]&&allData[userName][wk];
+  if(!prevData){if(err){err.textContent='Error inesperado.';err.style.display='block';}return;}
+  const sels=confSelections[wk]||{};
   let allFilled=true;
-  prevData.objetivos.forEach((_,i)=>{if(!confSelections[i])allFilled=false;});
-  if(!allFilled){err.textContent='Marc\u00e1 el estado de todos los objetivos.';err.style.display='block';return;}
-  err.style.display='none';
-  showModal({title:'&#191;Confirm&#225;s las verificaciones?',body:'Una vez guardado, <strong style="color:#FAC775">no podr&#225;s modificar el estado de esta semana.</strong>',onConfirm:'guardarConfirmaciones'});
+  prevData.objetivos.forEach((_,i)=>{if(!sels[i])allFilled=false;});
+  if(!allFilled){if(err){err.textContent='Marc\u00e1 el estado de todos los objetivos.';err.style.display='block';}return;}
+  if(err)err.style.display='none';
+  showModal({title:'&#191;Confirm\u00e1s las verificaciones?',body:'Una vez guardado, <strong style="color:#FAC775">no podr\u00e1s modificar el estado de esta semana.</strong>',onConfirm:`function(){guardarConfirmaciones('${wk}')}`});
 }
 async function guardarObjetivos(){
   const objs=Array.from(document.querySelectorAll('#objs-inputs input')).map(i=>i.value.trim()).filter(Boolean);
@@ -313,16 +318,17 @@ async function guardarObjetivos(){
   await Promise.all([pushToRemote(), enviarNotificacion('objetivos', userName, detalle)]);
   showUserPanel();
 }
-async function guardarConfirmaciones(){
-  const prevData=allData[userName]&&allData[userName][prevWeek];if(!prevData)return;
+async function guardarConfirmaciones(wk){
+  const prevData=allData[userName]&&allData[userName][wk];if(!prevData)return;
+  const sels=confSelections[wk]||{};
   const confs=prevData.objetivos.map((_,i)=>{
-    const links=Array.from(document.querySelectorAll(`#links-${i} input`)).map(l=>l.value.trim()).filter(Boolean);
-    const justifEl=document.getElementById('justif-'+i);
-    const justificacion=confSelections[i]==='no'&&justifEl?justifEl.value.trim():'';
-    return{cumplido:confSelections[i]==='si',links,justificacion};
+    const links=Array.from(document.querySelectorAll(`#links-${wk}-${i} input`)).map(l=>l.value.trim()).filter(Boolean);
+    const justifEl=document.getElementById('justif-'+wk+'-'+i);
+    const justificacion=sels[i]==='no'&&justifEl?justifEl.value.trim():'';
+    return{cumplido:sels[i]==='si',links,justificacion};
   });
-  allData[userName][prevWeek].confirmaciones=confs;
-  allData[userName][prevWeek].confirmadoEn=new Date().toISOString();
+  allData[userName][wk].confirmaciones=confs;
+  allData[userName][wk].confirmadoEn=new Date().toISOString();
   render('<div class="loading"><span class="spinner"></span>Guardando...</div>');
   if(syncPromise)await syncPromise;
   const resumen=prevData.objetivos.map((o,i)=>{
@@ -332,7 +338,7 @@ async function guardarConfirmaciones(){
     const motivo=c.justificacion?'\n   Motivo: '+c.justificacion:'';
     return `${i+1}. ${o}\n   ${estado}${links}${motivo}`;
   }).join('\n\n');
-  const detalle=`Semana: ${weekLabel(prevWeek)}\n\n${resumen}`;
+  const detalle=`Semana: ${weekLabel(wk)}\n\n${resumen}`;
   await Promise.all([pushToRemote(), enviarNotificacion('confirmaciones', userName, detalle)]);
   showUserPanel();
 }
