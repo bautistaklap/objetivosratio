@@ -1,4 +1,3 @@
-```html
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -63,12 +62,14 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .del-link{width:24px;height:24px;border-radius:6px;background:#212f42;border:none;color:#7a8fa6;font-size:13px;cursor:pointer;font-family:inherit;flex-shrink:0}
 .add-link-btn{font-size:11px;color:#7a8fa6;background:transparent;border:0.5px dashed #2e3f54;border-radius:7px;padding:4px 10px;cursor:pointer;font-family:inherit}
 .add-link-btn:hover{color:#fff}
+/* ── NUEVO: área de justificación ── */
 .justif-area{padding:10px 14px;background:#1a1228;border-top:0.5px solid #2e3f54;display:none}
 .justif-area.visible{display:block}
 .justif-lbl{font-size:10px;color:#9F7AEA;margin-bottom:6px;letter-spacing:0.06em;text-transform:uppercase}
 .justif-textarea{width:100%;font-size:12px;padding:8px 10px;background:#120d1e;border:0.5px solid #4a3570;border-radius:7px;color:#d4bfff;font-family:inherit;outline:none;resize:vertical;min-height:64px;line-height:1.5}
 .justif-textarea::placeholder{color:#5a4a7a}
 .justif-textarea:focus{border-color:#7F77DD}
+/* ── historial: motivo ── */
 .hist-motivo{font-size:11px;color:#9F7AEA;margin-top:4px;font-style:italic;padding:5px 8px;background:#1a1228;border-left:2px solid #4a3570;border-radius:0 5px 5px 0;line-height:1.5}
 .alert-ok{font-size:13px;color:#9FE1CB;padding:9px 14px;background:#1a3a28;border-radius:8px;margin-bottom:10px;border:0.5px solid #3B6D11}
 .err-msg{font-size:12px;color:#F09595;margin-top:6px}
@@ -176,10 +177,9 @@ async function syncFromRemote(){
   }catch(e){return false;}
 }
 async function pushToRemote(){
-  try{
-    await fetch(BIN_URL,{method:'PUT',headers:{'Content-Type':'application/json','X-Master-Key':API_KEY},body:JSON.stringify({datos:allData})});
-    saveCache();
-  }catch(e){console.error(e);}
+  const r=await fetch(BIN_URL,{method:'PUT',headers:{'Content-Type':'application/json','X-Master-Key':API_KEY},body:JSON.stringify({datos:allData})});
+  if(!r.ok)throw new Error('HTTP '+r.status);
+  saveCache();
 }
 
 async function enviarNotificacion(tipo, usuario, detalle){
@@ -315,8 +315,17 @@ async function guardarObjetivos(){
   render('<div class="loading"><span class="spinner"></span>Guardando...</div>');
   if(syncPromise)await syncPromise;
   const detalle=`Semana: ${weekLabel(currentWeek)}\n\nObjetivos:\n${objs.map((o,i)=>`${i+1}. ${o}`).join('\n')}`;
-  await Promise.all([pushToRemote(), enviarNotificacion('objetivos', userName, detalle)]);
-  showUserPanel();
+  try{
+    await pushToRemote();
+    enviarNotificacion('objetivos', userName, detalle);
+    showUserPanel();
+  }catch(e){
+    render(`<div style="max-width:380px;margin:2rem auto;background:#2a1e1e;border:1.5px solid #e8401c;border-radius:12px;padding:1.5rem">
+      <p style="font-size:15px;font-weight:500;color:#fff;margin-bottom:8px">&#9888; Error al guardar</p>
+      <p style="font-size:13px;color:#7a8fa6;margin-bottom:16px;line-height:1.6">No se pudieron guardar tus objetivos. Puede ser un problema de conexión. <strong style="color:#FAC775">Por favor intentá de nuevo.</strong></p>
+      <button class="save-btn save-red" onclick="showUserPanel()">Volver e intentar de nuevo</button>
+    </div>`);
+  }
 }
 async function guardarConfirmaciones(wk){
   const prevData=allData[userName]&&allData[userName][wk];if(!prevData)return;
@@ -339,8 +348,17 @@ async function guardarConfirmaciones(wk){
     return `${i+1}. ${o}\n   ${estado}${links}${motivo}`;
   }).join('\n\n');
   const detalle=`Semana: ${weekLabel(wk)}\n\n${resumen}`;
-  await Promise.all([pushToRemote(), enviarNotificacion('confirmaciones', userName, detalle)]);
-  showUserPanel();
+  try{
+    await pushToRemote();
+    enviarNotificacion('confirmaciones', userName, detalle);
+    showUserPanel();
+  }catch(e){
+    render(`<div style="max-width:380px;margin:2rem auto;background:#2a1e1e;border:1.5px solid #e8401c;border-radius:12px;padding:1.5rem">
+      <p style="font-size:15px;font-weight:500;color:#fff;margin-bottom:8px">&#9888; Error al guardar</p>
+      <p style="font-size:13px;color:#7a8fa6;margin-bottom:16px;line-height:1.6">No se pudieron guardar las confirmaciones. Puede ser un problema de conexión. <strong style="color:#FAC775">Por favor intentá de nuevo.</strong></p>
+      <button class="save-btn save-blue" onclick="showUserPanel()">Volver e intentar de nuevo</button>
+    </div>`);
+  }
 }
 
 function renderHistorial(userData,weeks){
@@ -385,7 +403,13 @@ function showBossPanel(){
     html+=`</div></div><div class="card card-plain"><div class="ch ch-plain"><span class="ch-title">Semana a semana</span></div><div class="cb">`;
     html+=allWeeks.map(w=>`<div class="hist-week"><p class="hist-week-lbl">${weekLabel(w)}</p>${users.filter(u=>allData[u]&&allData[u][w]).map((u,ui)=>{
       const d=allData[u][w];const objs=d.objetivos||[];const confs=d.confirmaciones||[];
-      return `<div style="margin-bottom:14px"><div style="display:flex;align-items:center;gap:8px;margin-bottom:8px"><div class="av-team" style="background:${avColor(ui)};color:#fff;cursor:pointer" onclick="showUserProfile('${u.replace(/\\/g,'\\\\').replace(/'/g,"\\'")}',${ui})">${initials(u)}</div><span style="font-size:13px;font-weight:500;color:#fff">${esc(u)}</span>${!d.confirmaciones&&objs.length?'<span class="badge b-warn">Sin confirmar</span>':''}</div><div style="padding-left:36px;display:flex;flex-direction:column;gap:6px">${objs.map((o,i)=>{const conf=confs[i];const badge=conf===undefined?'<span class="badge b-pend">Pendiente</span>':conf.cumplido?'<span class="badge b-ok">&#10003; Cumplido</span>':'<span class="badge b-no">&#10007; No cumplido</span>';const links=conf&&conf.links&&conf.links.length?conf.links.map(l=>`<div class="hist-link">&#8599; <a href="${esc(l)}" target="_blank" style="color:#7ab8f5">${esc(l)}</a></div>`).join(''):'';const motivo=conf&&!conf.cumplido&&conf.justificacion?`<div class="hist-motivo">&#128172; ${esc(conf.justificacion)}</div>`:'';return `<div class="hist-obj"><div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px"><span class="hist-obj-name">${esc(o)}</span>${badge}</div>${links}${motivo}</div>`;}).join('')}</div></div>`;
+      return `<div style="margin-bottom:14px"><div style="display:flex;align-items:center;gap:8px;margin-bottom:8px"><div class="av-team" style="background:${avColor(ui)};color:#fff;cursor:pointer" onclick="showUserProfile('${u.replace(/\\/g,'\\\\').replace(/'/g,"\\'")}',${ui})">${initials(u)}</div><span style="font-size:13px;font-weight:500;color:#fff">${esc(u)}</span>${!d.confirmaciones&&objs.length?'<span class="badge b-warn">Sin confirmar</span>':''}</div><div style="padding-left:36px;display:flex;flex-direction:column;gap:6px">${objs.map((o,i)=>{
+        const conf=confs[i];
+        const badge=conf===undefined?'<span class="badge b-pend">Pendiente</span>':conf.cumplido?'<span class="badge b-ok">&#10003; Cumplido</span>':'<span class="badge b-no">&#10007; No cumplido</span>';
+        const links=conf&&conf.links&&conf.links.length?conf.links.map(l=>`<div class="hist-link">&#8599; <a href="${esc(l)}" target="_blank" style="color:#7ab8f5">${esc(l)}</a></div>`).join(''):'';
+        const motivo=conf&&!conf.cumplido&&conf.justificacion?`<div class="hist-motivo">&#128172; ${esc(conf.justificacion)}</div>`:'';
+        return `<div class="hist-obj"><div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px"><span class="hist-obj-name">${esc(o)}</span>${badge}</div>${links}${motivo}</div>`;
+      }).join('')}</div></div>`;
     }).join('')}</div>`).join('');
     html+=`</div></div>`;
   }
@@ -486,4 +510,3 @@ init();
 </script>
 </body>
 </html>
-```
