@@ -62,14 +62,12 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .del-link{width:24px;height:24px;border-radius:6px;background:#212f42;border:none;color:#7a8fa6;font-size:13px;cursor:pointer;font-family:inherit;flex-shrink:0}
 .add-link-btn{font-size:11px;color:#7a8fa6;background:transparent;border:0.5px dashed #2e3f54;border-radius:7px;padding:4px 10px;cursor:pointer;font-family:inherit}
 .add-link-btn:hover{color:#fff}
-/* ── NUEVO: área de justificación ── */
 .justif-area{padding:10px 14px;background:#1a1228;border-top:0.5px solid #2e3f54;display:none}
 .justif-area.visible{display:block}
 .justif-lbl{font-size:10px;color:#9F7AEA;margin-bottom:6px;letter-spacing:0.06em;text-transform:uppercase}
 .justif-textarea{width:100%;font-size:12px;padding:8px 10px;background:#120d1e;border:0.5px solid #4a3570;border-radius:7px;color:#d4bfff;font-family:inherit;outline:none;resize:vertical;min-height:64px;line-height:1.5}
 .justif-textarea::placeholder{color:#5a4a7a}
 .justif-textarea:focus{border-color:#7F77DD}
-/* ── historial: motivo ── */
 .hist-motivo{font-size:11px;color:#9F7AEA;margin-top:4px;font-style:italic;padding:5px 8px;background:#1a1228;border-left:2px solid #4a3570;border-radius:0 5px 5px 0;line-height:1.5}
 .alert-ok{font-size:13px;color:#9FE1CB;padding:9px 14px;background:#1a3a28;border-radius:8px;margin-bottom:10px;border:0.5px solid #3B6D11}
 .err-msg{font-size:12px;color:#F09595;margin-top:6px}
@@ -138,10 +136,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 const BOSS_NAME='Bautista Klappenbach';
 const BOSS_PASS='181222Arg';
 const TEAM=['Alfredo','Agustín','Candela','Clara','Juan','Luciana','Malena','Manuel','Sofía','Victoria'];
-const BIN_ID='69dfa22a856a68218938e40e';
-const API_KEY='$2a$10$uej8hfPUqpXaircuYHffuOPDP1ekVl9rfu/D1xwhCxxGS2GLQA0EO';
-const BIN_URL='https://api.jsonbin.io/v3/b/'+BIN_ID;
-const CACHE_KEY='ratio_cache_v1';
+const SCRIPT_URL='https://script.google.com/macros/s/AKfycbwKwCEEXlHd1R2xEOmIYMcxrCzR6l171RU4eZztskTPGe3vGDqX3KPncCVdikdL8VFrag/exec';
+const CACHE_KEY='ratio_cache_v2';
 const SEM_MS=7*24*60*60*1000;
 
 function getWeekKey(date){
@@ -167,33 +163,36 @@ function loadCache(){
   allData={};return false;
 }
 function saveCache(){try{localStorage.setItem(CACHE_KEY,JSON.stringify(allData));}catch(e){}}
+
 async function syncFromRemote(){
   try{
-    const r=await fetch(BIN_URL+'/latest',{headers:{'X-Master-Key':API_KEY}});
+    const r=await fetch(SCRIPT_URL,{method:'GET'});
     const json=await r.json();
-    allData=json.record?.datos||{};
+    allData=json.data||{};
     saveCache();
     return true;
   }catch(e){return false;}
 }
-async function pushToRemote(){
-  const r=await fetch(BIN_URL,{method:'PUT',headers:{'Content-Type':'application/json','X-Master-Key':API_KEY},body:JSON.stringify({datos:allData})});
-  if(!r.ok)throw new Error('HTTP '+r.status);
+
+async function pushToRemote(payload){
+  const r=await fetch(SCRIPT_URL,{method:'POST',headers:{'Content-Type':'text/plain'},body:JSON.stringify(payload)});
+  const json=await r.json();
+  if(!json.ok)throw new Error(json.error||'Error desconocido');
   saveCache();
 }
 
-async function enviarNotificacion(tipo, usuario, detalle){
+async function enviarNotificacion(tipo,usuario,detalle){
   try{
     await fetch('https://api.web3forms.com/submit',{
       method:'POST',
       headers:{'Content-Type':'application/json'},
       body:JSON.stringify({
         access_key:'ed57b5f8-fc8b-434b-b744-3eda6cb4c6d7',
-        subject: tipo==='objetivos'
-          ? `\ud83c\udfaf ${usuario} carg\u00f3 sus objetivos de la semana`
-          : `\u2705 ${usuario} confirm\u00f3 sus objetivos de la semana pasada`,
+        subject:tipo==='objetivos'
+          ?`\ud83c\udfaf ${usuario} carg\u00f3 sus objetivos de la semana`
+          :`\u2705 ${usuario} confirm\u00f3 sus objetivos de la semana pasada`,
         from_name:'Objetivos \u00b7 Ratio',
-        message: detalle
+        message:detalle
       })
     });
   }catch(e){console.error('notif error',e);}
@@ -211,10 +210,7 @@ function showModal(opts){
 }
 function closeModal(){document.getElementById('modal-container').innerHTML='';}
 
-function activarJefe(){
-  userName=BOSS_NAME;
-  showBossPass();
-}
+function activarJefe(){userName=BOSS_NAME;showBossPass();}
 function showLogin(){
   setTopbar('');
   const inactive=allData.__inactive||[];
@@ -254,7 +250,7 @@ function showUserPanel(){
   }
   if(hasPendingWeeks){
     html+=`<div class="sec-label" style="margin-top:0.25rem"><div class="sec-num sec-blue">2</div><span class="sec-txt">Semanas pendientes de confirmaci&#243;n</span></div>`;
-    pendingWeeks.forEach((pw,pi)=>{
+    pendingWeeks.forEach((pw)=>{
       const pwData=userData[pw];
       html+=`<div class="card card-blue" style="margin-bottom:1rem"><div class="ch ch-blue"><span class="ch-title">Semana del ${weekLabel(pw)}</span><span class="ch-date">${weekLabel(pw)}</span></div><div class="cb">${pwData.objetivos.map((o,i)=>`<div class="obj-conf"><div class="obj-conf-top"><p class="obj-conf-name">${i+1}. ${esc(o)}</p><div style="display:flex;gap:8px;flex-wrap:wrap"><span class="rpill idle" id="rpill-ok-${pw}-${i}" onclick="selectConf('${pw}',${i},'si')">&#10003; Cumplido</span><span class="rpill idle" id="rpill-no-${pw}-${i}" onclick="selectConf('${pw}',${i},'no')">&#10007; No cumplido</span></div></div><div class="obj-conf-links"><p class="link-lbl">Links de evidencia</p><div id="links-${pw}-${i}"><div class="link-row-inp"><input placeholder="https://..."><button class="del-link" onclick="this.parentElement.remove()">&#215;</button></div></div><button class="add-link-btn" onclick="addLink('${pw}',${i})">+ Otro link</button></div><div class="justif-area" id="justif-area-${pw}-${i}"><p class="justif-lbl">&#128172; Motivo de incumplimiento</p><textarea class="justif-textarea" id="justif-${pw}-${i}" placeholder="Contá brevemente por qué no se pudo cumplir este objetivo..."></textarea></div></div>`).join('')}<div class="save-zone"><p class="save-warning" style="border-left-color:#378ADD">&#9888;&nbsp;<strong style="color:#FAC775">Atenci&#243;n:</strong> una vez confirmado, no podr&#225;s modificar esta semana.</p><button class="save-btn save-blue" onclick="confirmarGuardarConf('${pw}')">Guardar confirmaciones</button></div><p class="err-msg" id="err-conf-${pw}" style="display:none"></p></div></div>`;
     });
@@ -316,15 +312,11 @@ async function guardarObjetivos(){
   if(syncPromise)await syncPromise;
   const detalle=`Semana: ${weekLabel(currentWeek)}\n\nObjetivos:\n${objs.map((o,i)=>`${i+1}. ${o}`).join('\n')}`;
   try{
-    await pushToRemote();
-    enviarNotificacion('objetivos', userName, detalle);
+    await pushToRemote({action:'guardarObjetivos',usuario:userName,semana:weekLabel(currentWeek),objetivos:objs,timestamp:new Date().toISOString()});
+    enviarNotificacion('objetivos',userName,detalle);
     showUserPanel();
   }catch(e){
-    render(`<div style="max-width:380px;margin:2rem auto;background:#2a1e1e;border:1.5px solid #e8401c;border-radius:12px;padding:1.5rem">
-      <p style="font-size:15px;font-weight:500;color:#fff;margin-bottom:8px">&#9888; Error al guardar</p>
-      <p style="font-size:13px;color:#7a8fa6;margin-bottom:16px;line-height:1.6">No se pudieron guardar tus objetivos. Puede ser un problema de conexión. <strong style="color:#FAC775">Por favor intentá de nuevo.</strong></p>
-      <button class="save-btn save-red" onclick="showUserPanel()">Volver e intentar de nuevo</button>
-    </div>`);
+    render(`<div style="max-width:380px;margin:2rem auto;background:#2a1e1e;border:1.5px solid #e8401c;border-radius:12px;padding:1.5rem"><p style="font-size:15px;font-weight:500;color:#fff;margin-bottom:8px">&#9888; Error al guardar</p><p style="font-size:13px;color:#7a8fa6;margin-bottom:16px;line-height:1.6">No se pudieron guardar tus objetivos. Puede ser un problema de conexión. <strong style="color:#FAC775">Por favor intentá de nuevo.</strong></p><button class="save-btn save-red" onclick="showUserPanel()">Volver e intentar de nuevo</button></div>`);
   }
 }
 async function guardarConfirmaciones(wk){
@@ -349,15 +341,12 @@ async function guardarConfirmaciones(wk){
   }).join('\n\n');
   const detalle=`Semana: ${weekLabel(wk)}\n\n${resumen}`;
   try{
-    await pushToRemote();
-    enviarNotificacion('confirmaciones', userName, detalle);
+    const confirmaciones=confs.map((c,i)=>({objetivo:prevData.objetivos[i],cumplido:c.cumplido,links:c.links,motivo:c.justificacion}));
+    await pushToRemote({action:'guardarConfirmaciones',usuario:userName,semana:weekLabel(wk),confirmaciones});
+    enviarNotificacion('confirmaciones',userName,detalle);
     showUserPanel();
   }catch(e){
-    render(`<div style="max-width:380px;margin:2rem auto;background:#2a1e1e;border:1.5px solid #e8401c;border-radius:12px;padding:1.5rem">
-      <p style="font-size:15px;font-weight:500;color:#fff;margin-bottom:8px">&#9888; Error al guardar</p>
-      <p style="font-size:13px;color:#7a8fa6;margin-bottom:16px;line-height:1.6">No se pudieron guardar las confirmaciones. Puede ser un problema de conexión. <strong style="color:#FAC775">Por favor intentá de nuevo.</strong></p>
-      <button class="save-btn save-blue" onclick="showUserPanel()">Volver e intentar de nuevo</button>
-    </div>`);
+    render(`<div style="max-width:380px;margin:2rem auto;background:#2a1e1e;border:1.5px solid #e8401c;border-radius:12px;padding:1.5rem"><p style="font-size:15px;font-weight:500;color:#fff;margin-bottom:8px">&#9888; Error al guardar</p><p style="font-size:13px;color:#7a8fa6;margin-bottom:16px;line-height:1.6">No se pudieron guardar las confirmaciones. Puede ser un problema de conexión. <strong style="color:#FAC775">Por favor intentá de nuevo.</strong></p><button class="save-btn save-blue" onclick="showUserPanel()">Volver e intentar de nuevo</button></div>`);
   }
 }
 
@@ -376,7 +365,7 @@ function renderHistorial(userData,weeks){
 
 function showBossPanel(){
   setTopbar(`<div class="user-chip"><div class="avatar" style="background:#e8401c">BK</div><div><div class="u-name">Bautista</div><div class="u-week">Vista de jefe</div></div><button class="btn-ghost" onclick="logout()">Salir</button></div>`);
-  const users=Object.keys(allData).filter(u=>u!==BOSS_NAME);
+  const users=Object.keys(allData).filter(u=>u!==BOSS_NAME&&u!=='__inactive');
   const allWeeks=[...new Set(users.flatMap(u=>Object.keys(allData[u]||{})))].sort().reverse();
   let totalO=0,cumpl=0,sinConf=0;
   users.forEach(u=>{
@@ -390,11 +379,11 @@ function showBossPanel(){
   let html=`<div class="metric-grid"><div class="metric"><p class="metric-lbl">Miembros activos</p><p class="metric-val" style="color:#fff">${users.length}</p></div><div class="metric"><p class="metric-lbl">Cumplimiento semana pasada</p><p class="metric-val" style="color:#9FE1CB">${pct}</p></div><div class="metric"><p class="metric-lbl">Sin confirmar a&#250;n</p><p class="metric-val" style="color:#FAC775">${sinConf}</p></div></div>`;
   if(!users.length){
     html+=`<div class="card card-plain"><div class="cb"><p class="empty">Nadie carg&#243; objetivos todav&#237;a.</p></div></div>`;
-  } else {
+  }else{
     html+=`<div class="card card-plain"><div class="ch ch-plain"><span class="ch-title">Equipo</span></div><div class="cb">`;
     html+=users.map((u,ui)=>{
       const ud=allData[u]||{};const ws=Object.keys(ud);
-      const pendConf=ud[prevWeek]&&ud[prevWeek].objetivos&&!ud[prevWeek].confirmaciones;
+      const pendConf=Object.keys(ud).some(w=>ud[w].objetivos&&ud[w].objetivos.length&&!ud[w].confirmaciones);
       let tc=0,tot=0;ws.forEach(w=>{(ud[w].objetivos||[]).forEach((_,i)=>{tot++;if(ud[w].confirmaciones&&ud[w].confirmaciones[i]&&ud[w].confirmaciones[i].cumplido)tc++;});});
       const uPct=tot>0?Math.round(tc/tot*100)+'%':'&#8212;';
       const isInact=(allData.__inactive||[]).includes(u);
@@ -403,13 +392,7 @@ function showBossPanel(){
     html+=`</div></div><div class="card card-plain"><div class="ch ch-plain"><span class="ch-title">Semana a semana</span></div><div class="cb">`;
     html+=allWeeks.map(w=>`<div class="hist-week"><p class="hist-week-lbl">${weekLabel(w)}</p>${users.filter(u=>allData[u]&&allData[u][w]).map((u,ui)=>{
       const d=allData[u][w];const objs=d.objetivos||[];const confs=d.confirmaciones||[];
-      return `<div style="margin-bottom:14px"><div style="display:flex;align-items:center;gap:8px;margin-bottom:8px"><div class="av-team" style="background:${avColor(ui)};color:#fff;cursor:pointer" onclick="showUserProfile('${u.replace(/\\/g,'\\\\').replace(/'/g,"\\'")}',${ui})">${initials(u)}</div><span style="font-size:13px;font-weight:500;color:#fff">${esc(u)}</span>${!d.confirmaciones&&objs.length?'<span class="badge b-warn">Sin confirmar</span>':''}</div><div style="padding-left:36px;display:flex;flex-direction:column;gap:6px">${objs.map((o,i)=>{
-        const conf=confs[i];
-        const badge=conf===undefined?'<span class="badge b-pend">Pendiente</span>':conf.cumplido?'<span class="badge b-ok">&#10003; Cumplido</span>':'<span class="badge b-no">&#10007; No cumplido</span>';
-        const links=conf&&conf.links&&conf.links.length?conf.links.map(l=>`<div class="hist-link">&#8599; <a href="${esc(l)}" target="_blank" style="color:#7ab8f5">${esc(l)}</a></div>`).join(''):'';
-        const motivo=conf&&!conf.cumplido&&conf.justificacion?`<div class="hist-motivo">&#128172; ${esc(conf.justificacion)}</div>`:'';
-        return `<div class="hist-obj"><div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px"><span class="hist-obj-name">${esc(o)}</span>${badge}</div>${links}${motivo}</div>`;
-      }).join('')}</div></div>`;
+      return `<div style="margin-bottom:14px"><div style="display:flex;align-items:center;gap:8px;margin-bottom:8px"><div class="av-team" style="background:${avColor(ui)};color:#fff;cursor:pointer" onclick="showUserProfile('${u.replace(/\\/g,'\\\\').replace(/'/g,"\\'")}',${ui})">${initials(u)}</div><span style="font-size:13px;font-weight:500;color:#fff">${esc(u)}</span>${!d.confirmaciones&&objs.length?'<span class="badge b-warn">Sin confirmar</span>':''}</div><div style="padding-left:36px;display:flex;flex-direction:column;gap:6px">${objs.map((o,i)=>{const conf=confs[i];const badge=conf===undefined?'<span class="badge b-pend">Pendiente</span>':conf.cumplido?'<span class="badge b-ok">&#10003; Cumplido</span>':'<span class="badge b-no">&#10007; No cumplido</span>';const links=conf&&conf.links&&conf.links.length?conf.links.map(l=>`<div class="hist-link">&#8599; <a href="${esc(l)}" target="_blank" style="color:#7ab8f5">${esc(l)}</a></div>`).join(''):'';const motivo=conf&&!conf.cumplido&&conf.justificacion?`<div class="hist-motivo">&#128172; ${esc(conf.justificacion)}</div>`:'';return `<div class="hist-obj"><div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px"><span class="hist-obj-name">${esc(o)}</span>${badge}</div>${links}${motivo}</div>`;}).join('')}</div></div>`;
     }).join('')}</div>`).join('');
     html+=`</div></div>`;
   }
@@ -445,7 +428,7 @@ function showUserProfile(u,ui){
   </div></div></div>`;
   if(!weeks.length){
     html+=`<div class="card card-plain"><div class="cb"><p class="empty">Sin objetivos cargados.</p></div></div>`;
-  } else {
+  }else{
     html+=`<div class="card card-plain"><div class="ch ch-plain"><span class="ch-title">Historial completo</span></div><div class="cb">`;
     html+=weeks.map(w=>{
       const d=ud[w];const objs=d.objetivos||[];const confs=d.confirmaciones||[];
@@ -467,7 +450,7 @@ async function toggleDesactivar(u,ui){
   const idx=allData.__inactive.indexOf(u);
   if(idx>-1)allData.__inactive.splice(idx,1);
   else allData.__inactive.push(u);
-  await pushToRemote();
+  saveCache();
   showUserProfile(u,ui);
 }
 
@@ -482,14 +465,11 @@ function confirmarEliminar(u,ui){
 async function eliminarUsuario(u){
   delete allData[u];
   if(allData.__inactive)allData.__inactive=allData.__inactive.filter(x=>x!==u);
-  await pushToRemote();
+  saveCache();
   showBossPanel();
 }
 
-let syncPromise=null;
-
-function mergeLocalIntoRemote(localData, remoteData){
-  // Devuelve true si hubo cambios que hay que subir
+function mergeLocalIntoRemote(localData,remoteData){
   let dirty=false;
   Object.keys(localData).forEach(u=>{
     if(u==='__inactive')return;
@@ -498,37 +478,43 @@ function mergeLocalIntoRemote(localData, remoteData){
       const local=localData[u][w];
       const remote=remoteData[u][w];
       if(!remote){remoteData[u][w]=local;dirty=true;return;}
-      // Si local tiene confirmaciones y remote no, subir
       if(local.confirmaciones&&!remote.confirmaciones){remoteData[u][w].confirmaciones=local.confirmaciones;remoteData[u][w].confirmadoEn=local.confirmadoEn;dirty=true;}
-      // Si local tiene más objetivos que remote (se perdió el push)
       if((local.objetivos||[]).length>(remote.objetivos||[]).length){remoteData[u][w]=local;dirty=true;}
     });
   });
   return dirty;
 }
 
+let syncPromise=null;
 async function init(){
   loadCache();
   const localSnapshot=JSON.parse(JSON.stringify(allData));
   const savedUser=localStorage.getItem('ratio_user');
-  if(savedUser===BOSS_NAME){
-    userName=BOSS_NAME;
-    showBossPanel();
-  } else if(savedUser){
-    userName=savedUser;
-    showUserPanel();
-  } else {
-    showLogin();
-  }
-  syncPromise=syncFromRemote().then(async ()=>{
-    // Comparar local vs remoto y subir si hay datos locales que no llegaron
-    const dirty=mergeLocalIntoRemote(localSnapshot, allData);
+  if(savedUser===BOSS_NAME){userName=BOSS_NAME;showBossPanel();}
+  else if(savedUser){userName=savedUser;showUserPanel();}
+  else{showLogin();}
+  syncPromise=syncFromRemote().then(async()=>{
+    const dirty=mergeLocalIntoRemote(localSnapshot,allData);
     if(dirty){
-      console.log('Datos locales más nuevos detectados, subiendo a JSONBin...');
-      try{await pushToRemote();}catch(e){console.error('Error al re-subir datos locales',e);}
+      try{
+        // Re-subir cada semana nueva detectada
+        Object.keys(localSnapshot).filter(u=>u!=='__inactive').forEach(async u=>{
+          Object.keys(localSnapshot[u]||{}).forEach(async w=>{
+            const local=localSnapshot[u][w];
+            const remote=(allData[u]||{})[w];
+            if(!remote||(local.objetivos||[]).length>(remote.objetivos||[]).length){
+              await pushToRemote({action:'guardarObjetivos',usuario:u,semana:weekLabel(w),objetivos:local.objetivos||[],timestamp:local.timestamp||new Date().toISOString()});
+            }
+            if(local.confirmaciones&&(!remote||!remote.confirmaciones)){
+              const confirmaciones=local.objetivos.map((obj,i)=>({objetivo:obj,cumplido:local.confirmaciones[i]?.cumplido||false,links:local.confirmaciones[i]?.links||[],motivo:local.confirmaciones[i]?.justificacion||''}));
+              await pushToRemote({action:'guardarConfirmaciones',usuario:u,semana:weekLabel(w),confirmaciones});
+            }
+          });
+        });
+      }catch(e){console.error('Error sync local→remoto',e);}
     }
     if(userName){
-      if(userName===BOSS_NAME) showBossPanel();
+      if(userName===BOSS_NAME)showBossPanel();
       else showUserPanel();
     }
   });
