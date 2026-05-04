@@ -487,8 +487,29 @@ async function eliminarUsuario(u){
 }
 
 let syncPromise=null;
+
+function mergeLocalIntoRemote(localData, remoteData){
+  // Devuelve true si hubo cambios que hay que subir
+  let dirty=false;
+  Object.keys(localData).forEach(u=>{
+    if(u==='__inactive')return;
+    if(!remoteData[u]){remoteData[u]=localData[u];dirty=true;return;}
+    Object.keys(localData[u]).forEach(w=>{
+      const local=localData[u][w];
+      const remote=remoteData[u][w];
+      if(!remote){remoteData[u][w]=local;dirty=true;return;}
+      // Si local tiene confirmaciones y remote no, subir
+      if(local.confirmaciones&&!remote.confirmaciones){remoteData[u][w].confirmaciones=local.confirmaciones;remoteData[u][w].confirmadoEn=local.confirmadoEn;dirty=true;}
+      // Si local tiene más objetivos que remote (se perdió el push)
+      if((local.objetivos||[]).length>(remote.objetivos||[]).length){remoteData[u][w]=local;dirty=true;}
+    });
+  });
+  return dirty;
+}
+
 async function init(){
   loadCache();
+  const localSnapshot=JSON.parse(JSON.stringify(allData));
   const savedUser=localStorage.getItem('ratio_user');
   if(savedUser===BOSS_NAME){
     userName=BOSS_NAME;
@@ -499,7 +520,13 @@ async function init(){
   } else {
     showLogin();
   }
-  syncPromise=syncFromRemote().then(()=>{
+  syncPromise=syncFromRemote().then(async ()=>{
+    // Comparar local vs remoto y subir si hay datos locales que no llegaron
+    const dirty=mergeLocalIntoRemote(localSnapshot, allData);
+    if(dirty){
+      console.log('Datos locales más nuevos detectados, subiendo a JSONBin...');
+      try{await pushToRemote();}catch(e){console.error('Error al re-subir datos locales',e);}
+    }
     if(userName){
       if(userName===BOSS_NAME) showBossPanel();
       else showUserPanel();
